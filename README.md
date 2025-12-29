@@ -7,3 +7,7 @@ CS50's Introduction to Programming with Python (Harvard).
 
 📚 Objetivo: aprender Python com base sólida.
 🧠 Ritmo: 3 dias/semana – 2h por sessão.
+
+## Estrutura
+- week0 → fundamentos, inputs, validações e primeiros scripts
+- outras semanas virão 😊
