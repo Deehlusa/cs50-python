@@ -1,47 +1,24 @@
-[31] Idade informada pelo utilizador
-[31] Idade informada pelo utilizador
-[31] Idade informada pelo utilizador. Dia: 29/12/2025 14:07:52
-[31] Idade informada pelo utilizador. 
- Nome do utilizador:  29/12/2025 14:34:59
-[31] Idade informada pelo utilizador. 
- Nome do utilizador: André Rodrigues Dia: 29/12/2025 14:36:24
-[31] Idade informada pelo utilizador. 
- Nome do utilizador: André Rodrigues Dia: 29/12/2025 14:37:59
-(random.randrange(1, 9999)) [31]: Idade. 
- Nome do utilizador: André Dia: 29/12/2025 14:40:36
-print(random.randrange(1, 9999)) [31]: Idade. 
- Nome do utilizador: André Dia: 29/12/2025 14:41:09
-[None]:
-[31]: Idade. 
- Nome do utilizador: André Dia: 29/12/2025 14:47:55
-[None]:
-[31]: Idade. 
- Nome do utilizador: André Sales Dia: 29/12/2025 14:48:38
-[None]:
-[31]: Idade. 
- Nome do utilizador: Andr+e Dia: 29/12/2025 14:52:21
-[None]:
-[31]: Age. 
- Name of User: André Date: 29/12/2025 14:55:00
-[4782]:
-[4782]:
-[31]: Age. 
- Name of User: André Sales Date: 29/12/2025 14:58:26
-[7257]:
+[0430]:
+[Age: 26] 
+ Name of User: Laura Silva
+ Date: 29/12/2025 21:11:14
+[4490]:
 [Age: 31] 
- Name of User: André Luiz Sales Rodrigues Date: 29/12/2025 14:59:14
-[6886]:
-[Age: 21] 
- Name of User: André Date: 29/12/2025 15:12:56
-[3044]:
-[Age: vinte] 
- Name of User: André
- Date: 29/12/2025 15:28:16
-[0444]:
-[Age: vinte] 
- Name of User: André
- Date: 29/12/2025 15:29:33
-[4072]:
-[Age: 31] 
- Name of User: André Sales
- Date: 29/12/2025 15:31:18
+ Name of User: André Rodrigues
+ Date: 29/12/2025 23:57:22
+-------------------------
+[5244]:
+Age: (1, 120) 
+ Name of User: 121
+ Date: 30/12/2025 00:01:51
+-------------------------
+[0464]:
+Age: 30 
+ Name of User: André Luiz
+ Date: 30/12/2025 00:39:46
+-------------------------
+[0438]:
+Age: 30 
+ Name of User: André Rodrigues
+ Date: 30/12/2025 00:40:50
+-------------------------
