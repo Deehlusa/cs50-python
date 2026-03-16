@@ -1,13 +1,35 @@
-# cs50-python
-My learning journey through Harvard CS50’s Python course: exercises, challenges and final project.
+# CS50P – Introduction to Programming with Python
 
-# CS50P – Exercícios e Projetos
-Repositório para acompanhar meu progresso no curso 
-CS50's Introduction to Programming with Python (Harvard).
+My learning journey through Harvard's CS50P course — exercises, problem sets, and final project.
 
-📚 Objetivo: aprender Python com base sólida.
-🧠 Ritmo: 3 dias/semana – 2h por sessão.
+## About
 
-## Estrutura
-- week0 → fundamentos, inputs, validações e primeiros scripts
-- outras semanas virão 😊
+This repository tracks my progress through [CS50's Introduction to Programming with Python](https://cs50.harvard.edu/python/2022/) by Harvard University.
+
+## Progress
+
+| Week | Topic | Status |
+|------|-------|--------|
+| 0 | Functions, Variables | ✅ |
+| 1 | Conditionals | 🔄 |
+| 2 | Loops | ⬚ |
+| 3 | Exceptions | ⬚ |
+| 4 | Libraries | ⬚ |
+| 5 | Unit Tests | ⬚ |
+| 6 | File I/O | ⬚ |
+| 7 | Regular Expressions | ⬚ |
+| 8 | OOP | ⬚ |
+| 9 | Final Project | ⬚ |
+
+## Structure
+
+```
+cs50-python/
+├── week0/
+├── week1/
+└── ...
+```
+
+## Author
+
+**André Rodrigues** — QA Automation & AI Orchestration path
