@@ -73,3 +73,4 @@ print(f"É decimal ou espaço?   {is_decimal_or_space}") # Verificando se o valo
 print(f"É numérico ou espaço?  {is_numeric_or_space}") # Verificando se o valor é numérico ou espaço (True) ou não (False)
 print("-" * 30) 
 print("Fim do diagnóstico.")
+
