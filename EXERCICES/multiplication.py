@@ -16,3 +16,5 @@ for x in range(1, 11, 2):
     result = number * x
     print ("===== RESULT =====")
     print(f"{number} x {x} = {result}")  
+
+
