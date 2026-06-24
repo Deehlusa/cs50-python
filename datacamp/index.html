@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐍 Trilha Python para QA</title>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --line: #30363d;
+    --txt: #e6edf3; --muted: #8b949e; --accent: #2f81f7;
+    --green: #3fb950; --red: #f85149; --gold: #d29922;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, system-ui, sans-serif;
+    background: var(--bg); color: var(--txt); display: flex; height: 100vh;
+  }
+  /* Sidebar: a trilha por capitulos */
+  #sidebar {
+    width: 320px; background: var(--panel); border-right: 1px solid var(--line);
+    overflow-y: auto; padding: 16px; flex-shrink: 0;
+  }
+  #sidebar h1 { font-size: 18px; margin: 0 0 10px; }
+  #viewToggle { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tab { flex: 1; background: #21262d; color: var(--muted); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  /* TOC do curso */
+  .toc-page { padding: 6px 12px 6px 28px; border-radius: 8px; cursor: pointer; margin-bottom: 3px;
+    font-size: 13px; border: 1px solid transparent; }
+  .toc-page:hover { background: #21262d; }
+  .toc-page.active { border-color: var(--accent); background: #21262d; }
+  /* Leitor do curso */
+  #coursePageTitle { margin: 4px 0 18px; }
+  .course-step { margin-bottom: 22px; }
+  .course-step .step-text { line-height: 1.7; white-space: pre-wrap; }
+  .course-step pre { background: #0b0f14; border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 14px; overflow-x: auto; margin: 10px 0 0; }
+  .course-step pre code { font-family: "SF Mono", Menlo, monospace; font-size: 13px; color: var(--green); }
+  #courseCredit { color: var(--muted); font-size: 12px; margin-top: 28px;
+    border-top: 1px solid var(--line); padding-top: 12px; }
+  .step-text code { background: #21262d; padding: 1px 5px; border-radius: 4px;
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; }
+  #xpbar-wrap { background: #21262d; border-radius: 6px; height: 10px; margin: 8px 0; overflow: hidden; }
+  #xpbar { background: var(--gold); height: 100%; width: 0; transition: width .4s; }
+  #xptext { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .chapter { margin-bottom: 10px; }
+  .chapter-head {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    padding: 8px 10px; border-radius: 8px; font-weight: 600; font-size: 14px;
+  }
+  .chapter-head:hover { background: #21262d; }
+  .chapter-head .pct { margin-left: auto; font-size: 12px; color: var(--muted); font-weight: 400; }
+  .chapter-bar { height: 4px; background: #21262d; border-radius: 4px; margin: 2px 10px 6px; overflow: hidden; }
+  .chapter-bar > div { height: 100%; background: var(--green); width: 0; }
+  .ex-list { display: none; }
+  .ex-list.open { display: block; }
+  .ex-item {
+    padding: 7px 10px 7px 28px; border-radius: 8px; cursor: pointer; margin-bottom: 3px;
+    border: 1px solid transparent; display: flex; align-items: center; gap: 8px; font-size: 13px;
+  }
+  .ex-item:hover { background: #21262d; }
+  .ex-item.active { border-color: var(--accent); background: #21262d; }
+  .ex-item .pts { margin-left: auto; color: var(--gold); font-size: 11px; }
+  .ex-item.done .title { color: var(--green); }
+  /* Main */
+  #main { flex: 1; overflow-y: auto; padding: 28px 36px; max-width: 880px; }
+  .chapter-desc { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .lesson-chapter { background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; }
+  .lesson-chapter summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+  .lesson-chapter .lesson-body { white-space: pre-wrap; line-height: 1.6; margin: 12px 0; font-size: 14px; }
+  .course-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; margin: 12px 0 10px; }
+  .course-btn:hover { filter: brightness(1.1); }
+  #courseOverlay { display: none; position: fixed; inset: 0; z-index: 100;
+    background: var(--bg); flex-direction: column; }
+  #courseOverlay.open { display: flex; }
+  #courseBar { display: flex; align-items: center; gap: 12px; padding: 8px 14px;
+    background: var(--panel); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  #courseBar span { flex: 1; }
+  #closeCourse { background: var(--red); color: #fff; border: none; border-radius: 6px;
+    padding: 7px 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  #courseFrame { flex: 1; width: 100%; border: none; }
+  .resources { display: flex; flex-direction: column; gap: 6px; }
+  .resources a { color: var(--accent); font-size: 13px; text-decoration: none; }
+  .resources a:hover { text-decoration: underline; }
+  .lesson-ex { background: #0f1a2e; border: 1px solid #1f3a5f; border-radius: 8px;
+    padding: 12px 16px; margin: 14px 0 18px; }
+  .lesson-ex #lesson { white-space: pre-wrap; line-height: 1.6; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; }
+  .concept { color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  h2 { margin: 4px 0 14px; }
+  .context { line-height: 1.6; margin-bottom: 16px; }
+  .label { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 18px 0 6px; }
+  ol.instructions { margin: 0; padding-left: 22px; line-height: 1.7; }
+  .example { background: #0b0f14; border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 14px; font-family: "SF Mono", Menlo, monospace; font-size: 13px; color: var(--green); }
+  .qa { border-left: 3px solid var(--gold); padding: 8px 14px; margin: 16px 0;
+    background: #1c1a12; color: #e3c56b; font-size: 14px; border-radius: 0 6px 6px 0; }
+  details.hint { margin: 14px 0; }
+  details.hint summary { cursor: pointer; color: var(--accent); font-size: 14px; }
+  details.hint p { background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 14px; margin: 8px 0 0; line-height: 1.5; }
+  textarea { width: 100%; height: 240px; background: #0b0f14; color: var(--txt);
+    border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-size: 14px;
+    font-family: "SF Mono", Menlo, monospace; resize: vertical; tab-size: 4; }
+  .row { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+  button { border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px;
+    font-weight: 600; cursor: pointer; }
+  #run { background: #21262d; color: var(--txt); border: 1px solid var(--line); }
+  #grade { background: var(--accent); color: #fff; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  #output { margin-top: 14px; padding: 14px; border-radius: 8px; white-space: pre-wrap;
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; display: none; }
+  #output.ok { display: block; background: #12261a; border: 1px solid var(--green); }
+  #output.err { display: block; background: #2a1416; border: 1px solid var(--red); }
+  #feedback { margin-top: 14px; padding: 16px; border-radius: 8px; display: none;
+    background: var(--panel); border: 1px solid var(--accent); line-height: 1.55; white-space: pre-wrap; }
+  #feedback.show { display: block; }
+  .badge { display: inline-block; background: var(--gold); color: #000; font-weight: 700;
+    padding: 2px 10px; border-radius: 20px; font-size: 13px; }
+  #status { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+  <aside id="sidebar">
+    <h1>🐍 Python para QA</h1>
+    <div id="viewToggle">
+      <button id="tabCourse" class="tab active">📚 Curso</button>
+      <button id="tabPractice" class="tab">🎯 Prática</button>
+    </div>
+    <div id="xpbar-wrap"><div id="xpbar"></div></div>
+    <div id="xptext">carregando…</div>
+    <div id="courseList"></div>
+    <div id="list" style="display:none"></div>
+  </aside>
+
+  <main id="main">
+    <div id="status">⏳ Iniciando Pyodide (Python no navegador)…</div>
+
+    <!-- Leitor do curso (futurecoder em PT-BR) -->
+    <div id="coursePage" style="display:none">
+      <div class="chapter-desc" id="coursePageChapter"></div>
+      <h2 id="coursePageTitle"></h2>
+      <div id="courseSteps"></div>
+      <div class="row" style="margin-top:24px">
+        <button id="coursePrev" class="course-btn">← Página anterior</button>
+        <button id="courseNext" class="course-btn">Próxima página →</button>
+      </div>
+      <div id="courseCredit"></div>
+    </div>
+
+    <div id="exercise" style="display:none">
+      <div class="chapter-desc" id="chapterDesc"></div>
+
+      <details class="lesson-chapter" id="chapterLessonBox">
+        <summary>📖 Aula do capítulo (teoria em português)</summary>
+        <div class="lesson-body" id="chapterLesson"></div>
+        <button id="openCourse" class="course-btn">📚 Abrir o curso completo aqui (futurecoder, open-source)</button>
+        <div class="resources" id="chapterResources"></div>
+      </details>
+
+      <div class="concept" id="concept"></div>
+      <h2 id="title"></h2>
+
+      <div class="lesson-ex" id="lessonEx">
+        <div class="label" style="margin-top:0">📚 Aprenda primeiro</div>
+        <div id="lesson"></div>
+      </div>
+
+      <div class="context" id="context"></div>
+
+      <div class="label">📋 Instruções</div>
+      <ol class="instructions" id="instructions"></ol>
+
+      <div class="label">▶️ Exemplo</div>
+      <div class="example" id="example"></div>
+
+      <div class="qa" id="qa"></div>
+
+      <details class="hint"><summary>💡 Mostrar dica</summary><p id="hint"></p></details>
+
+      <div class="label">⌨️ Seu código (edite aqui ou cole do VSCode)</div>
+      <textarea id="code" spellcheck="false"></textarea>
+      <div class="row">
+        <button id="run">▶ Rodar testes (Pyodide)</button>
+        <button id="grade" disabled>🤖 Validar com agy e ganhar XP</button>
+      </div>
+      <div id="output"></div>
+      <div id="feedback"></div>
+    </div>
+  </main>
+
+  <!-- Curso futurecoder embutido (open-source, MIT) -->
+  <div id="courseOverlay">
+    <div id="courseBar">
+      <span>📚 futurecoder — curso interativo (open-source, MIT). 💡 No 1º uso: menu ☰ → Settings → Language → <b>Português</b> (ele lembra).</span>
+      <button id="closeCourse">✕ Fechar e voltar aos exercícios</button>
+    </div>
+    <iframe id="courseFrame" title="futurecoder"></iframe>
+  </div>
+
+<script>
+let pyodide, state, current = null, lastTestsPassed = false, openChapter = null;
+
+let course = [], courseAttribution = "", flatPages = [], curPage = -1;
+
+async function boot() {
+  pyodide = await loadPyodide();
+  document.getElementById("status").style.display = "none";
+  await refresh();
+  // carrega o curso PT-BR (futurecoder)
+  const cdata = await (await fetch("/api/course")).json();
+  course = cdata.course || [];
+  courseAttribution = cdata.attribution || "";
+  flatPages = [];
+  course.forEach((c, ci) => c.pages.forEach((p, pi) => flatPages.push({ ci, pi })));
+  renderCourseTOC();
+  // prepara prática (escondida) e abre o curso por padrão
+  const next = state.track.find(e => e.status !== "done") || state.track[0];
+  if (next) { openChapter = next.chapter; }
+  setView("course");
+  if (flatPages.length) selectPage(0, 0);
+}
+
+function setView(v) {
+  const course = v === "course";
+  document.getElementById("tabCourse").classList.toggle("active", course);
+  document.getElementById("tabPractice").classList.toggle("active", !course);
+  document.getElementById("courseList").style.display = course ? "block" : "none";
+  document.getElementById("list").style.display = course ? "none" : "block";
+  document.getElementById("coursePage").style.display = course ? "block" : "none";
+  document.getElementById("exercise").style.display = course ? "none" : (current ? "block" : "none");
+  if (!course && current) select(current);
+}
+
+// markdown mínimo: `code` e *itálico*, com HTML escapado
+function md(text) {
+  const esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return esc.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*([^*]+)\*/g, "<em>$1</em>");
+}
+
+function renderCourseTOC() {
+  const list = document.getElementById("courseList");
+  list.innerHTML = "";
+  course.forEach((c, ci) => {
+    const wrap = document.createElement("div");
+    wrap.className = "chapter";
+    const open = curPage >= 0 && flatPages[curPage] && flatPages[curPage].ci === ci;
+    wrap.innerHTML = `<div class="chapter-head"><span>${open ? "▾" : "▸"}</span>
+      <span>${c.chapter}</span><span class="pct">${c.pages.length}</span></div>
+      <div class="ex-list ${open ? "open" : ""}"></div>`;
+    wrap.querySelector(".chapter-head").onclick = () => {
+      const idx = flatPages.findIndex(f => f.ci === ci);
+      if (idx >= 0) selectPage(ci, 0, idx);
+    };
+    const el = wrap.querySelector(".ex-list");
+    c.pages.forEach((p, pi) => {
+      const flat = flatPages.findIndex(f => f.ci === ci && f.pi === pi);
+      const d = document.createElement("div");
+      d.className = "toc-page" + (curPage === flat ? " active" : "");
+      d.textContent = p.title;
+      d.onclick = () => selectPage(ci, pi, flat);
+      el.appendChild(d);
+    });
+    list.appendChild(wrap);
+  });
+}
+
+function selectPage(ci, pi, flat) {
+  if (flat === undefined) flat = flatPages.findIndex(f => f.ci === ci && f.pi === pi);
+  curPage = flat;
+  const { ci: c, pi: p } = flatPages[flat];
+  const chap = course[c], page = chap.pages[p];
+  renderCourseTOC();
+  document.getElementById("coursePageChapter").textContent = chap.chapter;
+  document.getElementById("coursePageTitle").textContent = page.title;
+  const box = document.getElementById("courseSteps");
+  box.innerHTML = "";
+  page.steps.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "course-step";
+    let html = `<div class="step-text">${md(s.text)}</div>`;
+    if (s.code) html += `<pre><code>${md(s.code).replace(/<\/?code>/g, "")}</code></pre>`;
+    div.innerHTML = html;
+    box.appendChild(div);
+  });
+  document.getElementById("courseCredit").textContent = courseAttribution;
+  document.getElementById("coursePrev").style.visibility = flat > 0 ? "visible" : "hidden";
+  document.getElementById("courseNext").style.visibility = flat < flatPages.length - 1 ? "visible" : "hidden";
+  document.getElementById("main").scrollTop = 0;
+}
+
+async function refresh() {
+  state = await (await fetch("/api/track")).json();
+  renderSidebar();
+}
+
+function renderSidebar() {
+  const pct = state.max_xp ? Math.round(100 * state.total_xp / state.max_xp) : 0;
+  document.getElementById("xpbar").style.width = pct + "%";
+  document.getElementById("xptext").textContent =
+    `${state.total_xp} / ${state.max_xp} XP  (${pct}%)`;
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  state.chapters.forEach(ch => {
+    const wrap = document.createElement("div");
+    wrap.className = "chapter";
+    const isOpen = openChapter === ch.title;
+    wrap.innerHTML = `
+      <div class="chapter-head">
+        <span>${isOpen ? "▾" : "▸"}</span>
+        <span>${ch.title}</span>
+        <span class="pct">${ch.done}/${ch.total}</span>
+      </div>
+      <div class="chapter-bar"><div style="width:${ch.pct}%"></div></div>
+      <div class="ex-list ${isOpen ? "open" : ""}"></div>`;
+    wrap.querySelector(".chapter-head").onclick = () => {
+      openChapter = isOpen ? null : ch.title;
+      renderSidebar();
+    };
+    const exList = wrap.querySelector(".ex-list");
+    state.track.filter(e => e.chapter === ch.title).forEach(ex => {
+      const div = document.createElement("div");
+      div.className = "ex-item" + (ex.status === "done" ? " done" : "") +
+                      (current === ex.id ? " active" : "");
+      div.innerHTML = `<span>${ex.status === "done" ? "✅" : "○"}</span>
+        <span class="title">${ex.title}</span>
+        <span class="pts">${ex.points} XP</span>`;
+      div.onclick = () => select(ex.id);
+      exList.appendChild(div);
+    });
+    list.appendChild(wrap);
+  });
+}
+
+function select(id) {
+  current = id; lastTestsPassed = false;
+  const ex = state.track.find(e => e.id === id);
+  openChapter = ex.chapter;
+  const ch = state.chapters.find(c => c.title === ex.chapter);
+  renderSidebar();
+  document.getElementById("exercise").style.display = "block";
+  document.getElementById("chapterDesc").textContent = ch ? ch.title + " — " + ch.description : "";
+  // Aula do capitulo + links pra base (PT-BR)
+  document.getElementById("chapterLesson").textContent = ch ? ch.lesson : "";
+  const resBox = document.getElementById("chapterResources");
+  resBox.innerHTML = "";
+  if (ch && ch.resources) {
+    ch.resources.forEach(r => {
+      const a = document.createElement("a");
+      a.href = r.url; a.target = "_blank"; a.rel = "noopener";
+      a.textContent = "🔗 " + r.label;
+      resBox.appendChild(a);
+    });
+  }
+  document.getElementById("concept").textContent = ex.concept;
+  document.getElementById("title").textContent = ex.title;
+  document.getElementById("lesson").textContent = ex.lesson || "";
+  document.getElementById("context").textContent = ex.context;
+  const ol = document.getElementById("instructions");
+  ol.innerHTML = "";
+  ex.instructions.forEach(step => {
+    const li = document.createElement("li"); li.textContent = step; ol.appendChild(li);
+  });
+  document.getElementById("example").textContent = ex.example;
+  document.getElementById("qa").textContent = "💡 No QA: " + ex.qa_note;
+  document.getElementById("hint").textContent = ex.hint;
+  document.getElementById("code").value = ex.last_code || ex.starter || "";
+  document.getElementById("output").className = "";
+  document.getElementById("feedback").className = "";
+  document.getElementById("grade").disabled = true;
+}
+
+// Roda o codigo do aluno + os testes no Pyodide. Verde/vermelho na hora.
+async function runTests() {
+  const ex = state.track.find(e => e.id === current);
+  const code = document.getElementById("code").value;
+  const out = document.getElementById("output");
+  pyodide.globals.set("user_code", code);
+  pyodide.globals.set("test_code", ex.tests);
+  const harness = `
+import io, contextlib, traceback
+_g = {}
+_result = "PASS"
+_msg = ""
+try:
+    with contextlib.redirect_stdout(io.StringIO()):
+        exec(user_code, _g)
+        exec(test_code, _g)
+except Exception:
+    _result = "FAIL"
+    _msg = traceback.format_exc()
+(_result, _msg)
+`;
+  try {
+    const [result, msg] = (await pyodide.runPythonAsync(harness)).toJs();
+    if (result === "PASS") {
+      out.className = "ok";
+      out.textContent = "✅ Todos os testes passaram! Agora valide com agy pra ganhar XP.";
+      lastTestsPassed = true;
+    } else {
+      out.className = "err";
+      out.textContent = "❌ Falhou:\n\n" + msg;
+      lastTestsPassed = false;
+    }
+    document.getElementById("grade").disabled = false;
+  } catch (e) {
+    out.className = "err";
+    out.textContent = "❌ Erro ao rodar:\n\n" + e;
+  }
+}
+
+// Manda pro agy (backend) validar a qualidade e dar XP.
+async function grade() {
+  const btn = document.getElementById("grade");
+  const fb = document.getElementById("feedback");
+  btn.disabled = true; btn.textContent = "🤖 agy analisando…";
+  fb.className = "show"; fb.textContent = "Aguarde, agy está revisando seu código…";
+  try {
+    const res = await fetch("/api/grade", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        exercise_id: current,
+        code: document.getElementById("code").value,
+        tests_passed: lastTestsPassed,
+      }),
+    });
+    const data = await res.json();
+    let head = "";
+    if (data.xp_awarded > 0) head = `<span class="badge">+${data.xp_awarded} XP 🎉</span>\n\n`;
+    else if (data.already_done) head = "✅ Já concluído antes (sem XP repetido).\n\n";
+    else if (!data.passed) head = "🔁 Ainda não passou — leia o feedback e tente de novo.\n\n";
+    fb.innerHTML = head + (data.feedback || "");
+    await refresh();
+  } catch (e) {
+    fb.textContent = "Erro ao falar com o backend: " + e;
+  } finally {
+    btn.disabled = false; btn.textContent = "🤖 Validar com agy e ganhar XP";
+  }
+}
+
+// Curso futurecoder embutido (lazy-load: só carrega o iframe ao abrir).
+document.getElementById("openCourse").onclick = (e) => {
+  e.preventDefault();
+  const frame = document.getElementById("courseFrame");
+  if (!frame.src) frame.src = "https://futurecoder.io/";
+  document.getElementById("courseOverlay").classList.add("open");
+};
+document.getElementById("closeCourse").onclick = () => {
+  document.getElementById("courseOverlay").classList.remove("open");
+};
+
+// Abas Curso / Prática
+document.getElementById("tabCourse").onclick = () => setView("course");
+document.getElementById("tabPractice").onclick = () => setView("practice");
+// Navegação de páginas do curso
+document.getElementById("coursePrev").onclick = () => { if (curPage > 0) selectPage(0, 0, curPage - 1); };
+document.getElementById("courseNext").onclick = () => { if (curPage < flatPages.length - 1) selectPage(0, 0, curPage + 1); };
+
+document.getElementById("run").onclick = runTests;
+document.getElementById("grade").onclick = grade;
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+/* Tema escuro do fork PT-BR. Override de Bootstrap 4 + github-markdown (claro).
+   Objetivo: zero fundo branco, bom contraste, sem quebrar editor/terminal. */
+:root {
+  --bg: #15171c;
+  --surface: #1e2128;
+  --surface-2: #262a33;
+  --text: #e7e9ee;
+  --muted: #9aa1ad;
+  --border: #2c313b;
+  --accent: #7c5cff;
+  --accent-hover: #6b49e0;
+  --green: #3fb950;
+}
+
+/* Botoes primarios: trocar o azul do Bootstrap por violeta/indigo */
+.btn-primary, .btn-info, .full-ide-button.btn {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active,
+.btn-info:hover, .btn-info:focus {
+  background-color: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+
+html, body, #root, .book, .app, .page, #app, .container, .container-fluid {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Texto das aulas (github-markdown e claro por padrao) */
+.markdown-body {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+}
+.markdown-body h1, .markdown-body h2, .markdown-body h3,
+.markdown-body h4, .markdown-body h5, .markdown-body strong { color: #ffffff !important; }
+.markdown-body a { color: var(--accent) !important; }
+.markdown-body hr { background-color: var(--border) !important; }
+.markdown-body blockquote { color: var(--muted) !important; border-left-color: var(--border) !important; }
+.markdown-body table tr { background-color: var(--bg) !important; color: var(--text) !important; }
+.markdown-body table td, .markdown-body table th { border-color: var(--border) !important; }
+/* code inline em fundo escuro */
+.markdown-body code, .markdown-body tt {
+  background-color: var(--surface-2) !important;
+  color: #f0c674 !important;
+}
+
+/* Cartoes / Collapsibles do Bootstrap (Requirements/Assessment/Hints) */
+.card, .Collapsible, .assistant-requirements, .assistant, .modal-content, .popover {
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+.card-header, .Collapsible__trigger, .card-body {
+  background-color: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+.Collapsible__trigger { background-color: var(--surface-2) !important; }
+
+/* Topbar / header */
+.navbar, header, .header { background-color: var(--surface) !important; border-color: var(--border) !important; }
+.navbar a, header a { color: var(--text) !important; }
+
+/* Table of Contents */
+.toc, .toc-page, .toc a, #toc { color: var(--text) !important; }
+.toc .card, #toc .card { background-color: var(--surface) !important; }
+
+/* Inputs / botoes neutros */
+.form-control, textarea, input, select {
+  background-color: var(--surface-2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+.btn-light, .btn-outline-secondary, .btn-secondary, .btn-default {
+  background-color: var(--surface-2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Popup (reactjs-popup) tem fundo claro por padrao */
+.popup-content {
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.5) !important;
+}
+.popup-arrow { color: var(--surface) !important; }
+
+/* Popups que herdam .my-popup-content (background:white cravado no main.scss) */
+.my-popup-content, .menu-popup, .settings-modal, .special-message-modal {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+/* Menu rapido do conteudo (botao hamburguer) */
+.quick-menu { max-height: 72vh; overflow-y: auto; min-width: 300px; padding: 6px 4px; }
+.quick-menu-head {
+  font-weight: 700; color: #fff; padding: 6px 12px 10px;
+  border-bottom: 1px solid var(--border); margin-bottom: 6px;
+}
+.quick-menu-chapter { margin-bottom: 10px; }
+.quick-menu-chapter-title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--muted); padding: 6px 12px 2px;
+}
+.quick-menu-page {
+  display: block; padding: 6px 12px; border-radius: 6px; font-size: 14px;
+  color: var(--text) !important; text-decoration: none !important;
+}
+.quick-menu-page:hover { background-color: var(--surface-2); color: #fff !important; }
+
+/* Table of Contents — visual mais profissional */
+.toc, .toc.bg-dark { background-color: var(--bg) !important; }
+.toc-header {
+  background-color: var(--surface) !important;
+  border-bottom: 1px solid var(--border); padding: 28px 0;
+}
+.toc-header h1 { color: #fff !important; font-weight: 800; }
+.toc-section h1 {
+  color: #fff !important; border-bottom: 1px solid var(--border); padding-bottom: 10px;
+}
+.toc-ol > li { margin-bottom: 22px; }
+.toc-ol h2 {
+  color: var(--accent) !important; font-size: 18px; font-weight: 700; margin: 18px 0 8px;
+}
+.toc-ol ol li { margin: 2px 0; }
+.toc-ol a {
+  color: var(--text) !important; text-decoration: none !important;
+  display: inline-block; padding: 4px 9px; border-radius: 6px;
+}
+.toc-ol a:hover { background-color: var(--surface-2); color: #fff !important; }
+
+/* Botao "Salvar no projeto" (canto inferior, ao lado do full-screen) */
+.save-code-btn {
+  position: fixed; bottom: 14px; right: 70px; z-index: 5;
+  background: var(--green) !important; color: #fff !important;
+  border: none !important; font-weight: 600;
+}
+.save-code-btn:hover { filter: brightness(1.08); }
+
+/* Barra de progresso do curso na navbar (estilo DataCamp) */
+.course-progress {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-left: auto; padding-right: 12px;
+}
+.course-progress-bar {
+  width: 120px; height: 8px; background: var(--surface-2);
+  border-radius: 4px; overflow: hidden;
+}
+.course-progress-fill {
+  display: block; height: 100%; background: var(--accent); transition: width .3s ease;
+}
+.course-progress-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* Botoes utilitarios da barra do editor (snoop/pythontutor/birdseye/ajuda):
+   tira o verde que destoa; mantem "Proximo" e "Salvar" verdes (acoes positivas). */
+.editor-buttons .btn-success {
+  background-color: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+.editor-buttons .btn-success:hover {
+  background-color: var(--border) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Shell com cara de terminal de verdade: painel distinto + cabecalho com dots */
+.terminal {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, .4);
+  overflow: hidden;
+}
+.terminal::before {
+  content: "Shell Python";
+  position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+  pointer-events: none;  /* nao intercepta clique no shell */
+  height: 32px; padding-left: 64px;
+  color: var(--muted); font: 600 12px/32px monospace; letter-spacing: .5px;
+  background:
+    radial-gradient(circle 5px at 20px 16px, #ff5f56 98%, transparent),
+    radial-gradient(circle 5px at 40px 16px, #ffbd2e 98%, transparent),
+    radial-gradient(circle 5px at 60px 16px, #27c93f 98%, transparent),
+    var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Tutor IA por fase (agy/claude) */
+.tutor-trigger {
+  background: none; border: none; color: var(--text) !important;
+  cursor: pointer; font-size: inherit;
+}
+.tutor-trigger:hover { color: var(--accent) !important; }
+.tutor-panel { width: 380px; max-width: 92vw; padding: 4px 2px; }
+.tutor-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; color: #fff; padding: 4px 8px 10px;
+  border-bottom: 1px solid var(--border); margin-bottom: 10px;
+}
+.tutor-close {
+  background: none; border: none; color: var(--muted); font-size: 20px;
+  line-height: 1; cursor: pointer;
+}
+.tutor-close:hover { color: #fff; }
+.tutor-pickers { display: flex; gap: 8px; margin-bottom: 10px; }
+.tutor-pick {
+  flex: 1; padding: 6px 8px; border-radius: 6px; cursor: pointer;
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); font-size: 13px;
+}
+.tutor-pick.active { border-color: var(--accent); color: #fff; box-shadow: 0 0 0 1px var(--accent); }
+.tutor-question {
+  width: 100%; resize: vertical; border-radius: 8px;
+  background: var(--surface-2) !important; color: var(--text) !important;
+  border: 1px solid var(--border) !important; padding: 8px; font-size: 14px;
+}
+.tutor-actions { display: flex; gap: 8px; margin: 10px 0; }
+.tutor-review {
+  background: var(--surface-2) !important; color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+.tutor-answer {
+  white-space: pre-wrap; font-size: 14px; line-height: 1.5;
+  color: var(--text); background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; max-height: 46vh; overflow-y: auto;
+}
+
+/* Painel flutuante e arrastavel do tutor */
+.tutor-float {
+  position: fixed; z-index: 60; width: 372px; max-width: 92vw;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 18px 52px rgba(0, 0, 0, .55);
+  padding: 8px 12px 12px;
+}
+.tutor-float .tutor-head { cursor: move; user-select: none; }
+.tutor-drag-hint { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+
+/* Sumario (#toc): barra de progresso + checkpoints por pagina */
+.toc-progress { display: flex; align-items: center; gap: 10px; margin: 4px 0 18px; }
+.toc-progress-bar {
+  width: 220px; height: 8px; background: var(--surface-2);
+  border-radius: 4px; overflow: hidden;
+}
+.toc-progress-fill { height: 100%; background: var(--accent); transition: width .3s ease; }
+.toc-progress-label { font-size: 13px; color: var(--muted); }
+
+.toc-page-item { display: flex; align-items: center; gap: 8px; }
+.toc-mark { display: inline-block; width: 14px; text-align: center; font-weight: 700; }
+.toc-page-item.done .toc-mark { color: var(--green); }
+.toc-page-item.started .toc-mark { color: var(--accent); }
+.toc-page-item.done a { color: var(--muted) !important; }
+.toc-page-item.current a { color: #fff !important; font-weight: 700; }
+.toc-atual {
+  margin-left: 6px; font-size: 11px; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 10px; padding: 1px 8px;
+}
+
+/* Syntax highlight: troca o VERDE monokai (#a6e22e) por ciano nos nomes de funcao/classe.
+   Afeta blocos de codigo das aulas E a saida/traceback do shell (ambos usam .codehilite). */
+.codehilite .nf, .codehilite .nc, .codehilite .nd, .codehilite .ne,
+.codehilite .nx, .codehilite .na, .codehilite .fm, .codehilite .gi,
+.codehilite .nf-ExecutingNode, .codehilite .nc-ExecutingNode,
+.codehilite .nd-ExecutingNode, .codehilite .ne-ExecutingNode,
+.codehilite .nx-ExecutingNode, .codehilite .na-ExecutingNode,
+.codehilite .fm-ExecutingNode, .codehilite .gi-ExecutingNode {
+  color: #66d9ef !important;
+}
+/* O editor Ace (monokai) tambem pinta funcoes de verde */
+.ace-monokai .ace_entity.ace_name.ace_function,
+.ace-monokai .ace_support.ace_function,
+.ace-monokai .ace_variable {
+  color: #66d9ef !important;
+}
+/* Fundo do editor Ace e verde-musgo (#272822 do monokai) -> alinhar ao shell escuro */
+.ace-monokai, .ace-monokai .ace_gutter {
+  background-color: #0d0f14 !important;
+}
+.ace-monokai .ace_marker-layer .ace_active-line,
+.ace-monokai .ace_gutter-active-line {
+  background-color: #1a1d24 !important;
+}
+
+/* Quick-menu (☰): mesmos checkpoints do #toc */
+.quick-menu-page { display: flex !important; align-items: center; gap: 6px; }
+.quick-menu-mark { display: inline-block; width: 13px; text-align: center; font-weight: 700; }
+.quick-menu-page.done .quick-menu-mark { color: var(--green); }
+.quick-menu-page.started .quick-menu-mark { color: var(--accent); }
+.quick-menu-page.done .quick-menu-title { color: var(--muted); }
+
+/* Botao "Limpar progresso" (reusado no ☰, no #toc e em Configuracoes) */
+.clear-progress-btn {
+  background: transparent; color: #ff7b72; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 5px 10px; font-size: 13px; font-weight: 600;
+}
+.clear-progress-btn:hover { border-color: #ff7b72; background: rgba(255, 123, 114, .08); }
+.clear-progress-mini { padding: 2px 8px; font-size: 11px; }
+
+/* cabecalho do quick-menu com titulo + botao limpar lado a lado */
+.quick-menu-head { display: flex; align-items: center; justify-content: space-between; }
+
+/* barra de progresso do #toc com o botao limpar a direita */
+.toc-progress .clear-progress-mini { margin-left: auto; }
+
+/* Popup de Configuracoes (⚙) */
+.settings-popup { min-width: 280px; max-width: 92vw; padding: 4px 4px 10px; }
+.settings-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px 0; }
+.settings-desc { color: var(--muted); font-size: 12px; padding: 4px 12px 10px; margin: 0; }
+.settings-popup .clear-progress-btn { margin: 4px 12px 0; }
+
+/* NAO mexer no editor de codigo e terminal: ja sao escuros (Ace/Pyodide). */

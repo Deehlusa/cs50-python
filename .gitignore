@@ -80,3 +80,35 @@ htmlcov/
 # Misc
 *.log
 .DS_Store
+
+# ===== Sala de estudos (datacamp) — adicoes =====
+# Privado, nunca commitar
+CLAUDE.md
+
+# Bancos locais / logs de exercicio
+ruvector.db
+age_log.txt
+datacamp/progress.db
+
+# Clone do futurecoder (fonte MIT, ~65k arquivos) — nao versionar
+datacamp/.futurecoder-src/
+
+# Codigo salvo do navegador (estudo pessoal)
+datacamp/saved_code/
+
+# Rascunhos de estudo soltos
+datacamp/calculator_with_variables.py
+datacamp/new_other_types_operations.py
+datacamp/other_variables_types.py
+
+# Screenshots (Playwright) e notas internas
+*.png
+.playwright-mcp/
+docs/superpowers/
+
+# Artefatos de orquestracao local
+.swarm/
+agentdb.rvf
+agentdb.rvf.lock
+*.rvf
+*.rvf.lock
