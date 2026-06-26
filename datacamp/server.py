@@ -76,7 +76,18 @@ def init_db():
             starter      TEXT,
             func         TEXT,
             tests        TEXT,
-            points       INTEGER
+            points       INTEGER,
+            -- Refactor "aprender fazendo": campos opcionais novos
+            type           TEXT DEFAULT 'write_code',  -- write_code | write_test
+            predict        TEXT DEFAULT '',            -- pergunta "o que isto retorna?"
+            hints          TEXT DEFAULT '[]',          -- JSON: dicas progressivas (lista)
+            video          TEXT DEFAULT '',            -- URL de video (YouTube)
+            sources        TEXT DEFAULT '[]',          -- JSON: [{label,url}]
+            -- Campos da trilha "aluno escreve o teste" (mutation testing)
+            target_func    TEXT DEFAULT '',            -- funcao sob teste (fornecida pronta)
+            reference_impl TEXT DEFAULT '',            -- implementacao correta
+            mutants        TEXT DEFAULT '[]',          -- JSON: lista de impls bugadas
+            min_tests      INTEGER DEFAULT 0           -- nº minimo de funcoes test_*
         );
         CREATE TABLE IF NOT EXISTS progress (
             exercise_id INTEGER PRIMARY KEY,
@@ -95,15 +106,42 @@ def init_db():
             (i, title, info["description"], info["lesson"], resources),
         )
     for ex in TRACK:
-        row = dict(ex)
-        row["instructions"] = "\n".join(ex["instructions"])
+        # Dicas progressivas: usa 'hints' (lista) se houver, senao cai no 'hint' unico.
+        hints = ex.get("hints") or ([ex["hint"]] if ex.get("hint") else [])
+        row = {
+            "ord": ex["ord"],
+            "chapter": ex["chapter"],
+            "title": ex["title"],
+            "concept": ex.get("concept", ""),
+            "lesson": ex.get("lesson", ""),
+            "context": ex.get("context", ""),
+            "instructions": "\n".join(ex.get("instructions", [])),
+            "example": ex.get("example", ""),
+            "qa_note": ex.get("qa_note", ""),
+            "hint": ex.get("hint", ""),
+            "starter": ex.get("starter", ""),
+            "func": ex.get("func", ""),
+            "tests": ex.get("tests", ""),
+            "points": ex.get("points", 0),
+            "type": ex.get("type", "write_code"),
+            "predict": ex.get("predict", ""),
+            "hints": json.dumps(hints, ensure_ascii=False),
+            "video": ex.get("video", ""),
+            "sources": json.dumps(ex.get("sources", []), ensure_ascii=False),
+            "target_func": ex.get("target_func", ""),
+            "reference_impl": ex.get("reference_impl", ""),
+            "mutants": json.dumps(ex.get("mutants", []), ensure_ascii=False),
+            "min_tests": ex.get("min_tests", 0),
+        }
         conn.execute(
             """INSERT INTO exercises
                (ord,chapter,title,concept,lesson,context,instructions,example,qa_note,
-                hint,starter,func,tests,points)
+                hint,starter,func,tests,points,
+                type,predict,hints,video,sources,target_func,reference_impl,mutants,min_tests)
                VALUES
                (:ord,:chapter,:title,:concept,:lesson,:context,:instructions,:example,:qa_note,
-                :hint,:starter,:func,:tests,:points)""",
+                :hint,:starter,:func,:tests,:points,
+                :type,:predict,:hints,:video,:sources,:target_func,:reference_impl,:mutants,:min_tests)""",
             row,
         )
     conn.execute(
@@ -123,6 +161,16 @@ def init_db():
         """
     )
     conn.execute("INSERT OR IGNORE INTO course_progress (id) VALUES (1)")
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS practice_progress (
+            exercise_id TEXT PRIMARY KEY,
+            xp          INTEGER DEFAULT 0,
+            mode        TEXT DEFAULT '',
+            updated_at  TEXT DEFAULT (datetime('now','localtime'))
+        );
+        """
+    )
     conn.commit()
     conn.close()
 
@@ -143,6 +191,11 @@ def get_track():
     for r in rows:
         d = dict(r)
         d["instructions"] = d["instructions"].split("\n") if d["instructions"] else []
+        for key in ("hints", "sources", "mutants"):
+            try:
+                d[key] = json.loads(d.get(key) or "[]")
+            except (ValueError, TypeError):
+                d[key] = []
         track.append(d)
 
     # Progresso por capitulo.
@@ -224,6 +277,33 @@ def save_code(slug, code):
     return {"ok": True, "path": f"saved_code/{safe}.py"}, 200
 
 
+def save_practice_progress(exercise_id, xp, mode):
+    """Espelha a conclusao de um exercicio do painel Pratique no SQLite."""
+    if not exercise_id:
+        return {"ok": False, "error": "sem exercise_id"}, 400
+    conn = db()
+    conn.execute(
+        """INSERT INTO practice_progress (exercise_id, xp, mode, updated_at)
+           VALUES (?,?,?,datetime('now','localtime'))
+           ON CONFLICT(exercise_id) DO UPDATE SET
+               xp=excluded.xp, mode=excluded.mode, updated_at=datetime('now','localtime')""",
+        (str(exercise_id), int(xp or 0), str(mode or "")),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}, 200
+
+
+def get_practice_progress():
+    conn = db()
+    rows = conn.execute(
+        "SELECT exercise_id, xp, mode, updated_at FROM practice_progress"
+    ).fetchall()
+    conn.close()
+    items = [dict(r) for r in rows]
+    return {"items": items, "count": len(items), "xp": sum(i["xp"] for i in items)}
+
+
 # ---------------------------------------------------------------------------
 # Tutor IA por fase (agy 0-quota OU claude via CLI) — segue as regras do CLAUDE.md
 # ---------------------------------------------------------------------------
@@ -294,6 +374,32 @@ def build_prompt(ex, code, tests_passed):
     """Prompt no modo TUTOR: agy da feedback, NAO reescreve a solucao."""
     instr = ex["instructions"] if isinstance(ex["instructions"], str) \
         else "\n".join(ex["instructions"])
+
+    # Modo "aluno escreve o teste": revisar a QUALIDADE dos testes, nao implementar.
+    if ex.get("type") == "write_test":
+        return f"""Voce e um tutor de QA Automation revisando os TESTES que um aluno escreveu.
+Responda em portugues (PT-BR). Seja curto e direto.
+
+REGRAS:
+- NAO escreva os testes por ele. NAO mostre os testes certos.
+- Avalie como um QA avaliaria testes: cobrem caminho feliz E casos de erro/limite?
+  Os nomes dos test_* sao descritivos? Seguem Arrange/Act/Assert?
+- De no maximo 1 ponto forte + 1 melhoria.
+- Na ULTIMA linha escreva exatamente 'RESULT: PASS' se os testes estao bons
+  (mataram os bugs plantados), ou 'RESULT: FAIL' se ficaram fracos.
+
+EXERCICIO: {ex['title']}
+CONTEXTO: {ex['context']}
+INSTRUCOES:
+{instr}
+OS TESTES DO ALUNO MATARAM TODOS OS BUGS PLANTADOS (mutantes)? {"sim" if tests_passed else "nao"}
+
+TESTES ESCRITOS PELO ALUNO:
+```python
+{code}
+```
+"""
+
     return f"""Voce e um tutor de Python para QA Automation revisando o codigo de um aluno.
 Responda em portugues (PT-BR). Seja curto e direto.
 
@@ -341,43 +447,46 @@ def grade_with_agy(ex, code, tests_passed):
 
 
 def record_attempt(exercise_id, code, tests_passed):
+    # try/finally garante fechar a conexao mesmo se grade_with_agy lancar (evita
+    # vazamento de conexao -> "database is locked" com varios alunos). [agy review]
     conn = db()
-    ex = conn.execute("SELECT * FROM exercises WHERE id=?", (exercise_id,)).fetchone()
-    if ex is None:
+    try:
+        ex = conn.execute("SELECT * FROM exercises WHERE id=?", (exercise_id,)).fetchone()
+        if ex is None:
+            return {"error": "exercicio nao encontrado"}, 404
+
+        result = grade_with_agy(dict(ex), code, tests_passed)
+
+        prog = conn.execute(
+            "SELECT * FROM progress WHERE exercise_id=?", (exercise_id,)
+        ).fetchone()
+        already_done = prog["status"] == "done"
+
+        awarded = 0
+        new_status = prog["status"]
+        new_score = prog["score"]
+        if result.get("passed") and not already_done:
+            awarded = ex["points"]
+            new_status = "done"
+            new_score = ex["points"]
+
+        conn.execute(
+            """UPDATE progress
+               SET status=?, score=?, attempts=attempts+1, last_code=?,
+                   updated_at=datetime('now','localtime')
+               WHERE exercise_id=?""",
+            (new_status, new_score, code, exercise_id),
+        )
+        conn.commit()
+
+        return {
+            "feedback": result["feedback"],
+            "passed": bool(result.get("passed")),
+            "xp_awarded": awarded,
+            "already_done": already_done,
+        }, 200
+    finally:
         conn.close()
-        return {"error": "exercicio nao encontrado"}, 404
-
-    result = grade_with_agy(dict(ex), code, tests_passed)
-
-    prog = conn.execute(
-        "SELECT * FROM progress WHERE exercise_id=?", (exercise_id,)
-    ).fetchone()
-    already_done = prog["status"] == "done"
-
-    awarded = 0
-    new_status = prog["status"]
-    new_score = prog["score"]
-    if result.get("passed") and not already_done:
-        awarded = ex["points"]
-        new_status = "done"
-        new_score = ex["points"]
-
-    conn.execute(
-        """UPDATE progress
-           SET status=?, score=?, attempts=attempts+1, last_code=?,
-               updated_at=datetime('now','localtime')
-           WHERE exercise_id=?""",
-        (new_status, new_score, code, exercise_id),
-    )
-    conn.commit()
-    conn.close()
-
-    return {
-        "feedback": result["feedback"],
-        "passed": bool(result.get("passed")),
-        "xp_awarded": awarded,
-        "already_done": already_done,
-    }, 200
 
 
 # ---------------------------------------------------------------------------
@@ -442,6 +551,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self._service_worker_stub()
         if self.path.startswith("/api/track"):
             return self._json(get_track())
+        if self.path.startswith("/api/practice-progress"):
+            return self._json(get_practice_progress())
         if self.path.startswith("/api/course-progress"):
             return self._json(get_course_progress())
         if self.path.startswith("/api/course"):
@@ -474,6 +585,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self._json({"ok": True})
         if self.path.startswith("/api/save-code"):
             payload, code = save_code(data.get("slug", ""), data.get("code", ""))
+            return self._json(payload, code)
+        if self.path.startswith("/api/practice-progress"):
+            payload, code = save_practice_progress(
+                data.get("exercise_id", ""),
+                data.get("xp", 0),
+                data.get("mode", ""),
+            )
             return self._json(payload, code)
         if self.path.startswith("/api/tutor"):
             payload, code = run_tutor(

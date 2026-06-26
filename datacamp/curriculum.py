@@ -185,6 +185,21 @@ CHAPTERS = {
             ("Pense em Python — Classes e objetos", "https://penseallen.github.io/PensePython2e/"),
         ],
     },
+    "11. Escrever testes (pytest)": {
+        "description": "Inverter o jogo: agora VOCÊ escreve os testes que pegam os bugs.",
+        "lesson": (
+            "Até aqui você escrevia a função e a plataforma testava. Em QA é o "
+            "contrário: você ESCREVE os testes.\n"
+            "Padrão AAA: Arrange (prepara) → Act (executa) → Assert (verifica).\n"
+            "Aqui a plataforma tem a função CERTA + versões com bugs (mutantes). Seu "
+            "teste precisa PASSAR na certa e FALHAR nas bugadas. Um bom teste mata "
+            "todos os mutantes — é assim que se mede um teste de verdade."
+        ),
+        "resources": [
+            ("Test Automation University — Introduction to pytest", "https://testautomationu.applitools.com/pytest-tutorial/"),
+            ("Doc oficial — pytest", "https://docs.pytest.org/en/stable/"),
+        ],
+    },
 }
 
 
@@ -212,6 +227,17 @@ TRACK = [
         "example": "describe(42)  ->  '42 e do tipo int'",
         "qa_note": "Validar tipos evita o bug clássico de comparar '5' (str) com 5 (int).",
         "hint": "Uma f-string resolve: f\"{value} e do tipo {type(value).__name__}\".",
+        "predict": "Antes de rodar: o que você acha que `describe(42)` devolve?",
+        "hints": [
+            "Você precisa de DUAS coisas: o valor e o NOME do tipo dele.",
+            "type(value) devolve o tipo; type(value).__name__ devolve só o nome ('int').",
+            "Monte com f-string e retorne: f\"{value} e do tipo {type(value).__name__}\".",
+        ],
+        "video": "https://www.youtube.com/playlist?list=PLIbmlYZ19yU4tmcsZnvBS038l-DDlNiQg",
+        "sources": [
+            {"label": "Doc Python (PT) — tipos built-in", "url": "https://docs.python.org/pt-br/3/library/stdtypes.html"},
+            {"label": "futurecoder (PT-BR)", "url": "https://futurecoder.io/"},
+        ],
         "starter": "def describe(value):\n    # monte a string com uma f-string\n    ...",
         "func": "describe",
         "tests": (
@@ -244,6 +270,16 @@ TRACK = [
         "example": "to_number('3.14')  ->  3.14",
         "qa_note": "Massa de teste vem como texto; o cast errado é fonte comum de falha.",
         "hint": "A função embutida float() converte '3.14' em número.",
+        "predict": "Antes de rodar: `float('10')` devolve 10 ou 10.0? E de que tipo?",
+        "hints": [
+            "Existe uma função embutida que transforma texto em número decimal.",
+            "float('3.14') vira 3.14 (um float).",
+            "return float(s) resolve — você só escreve o return.",
+        ],
+        "video": "https://www.youtube.com/playlist?list=PLIbmlYZ19yU4tmcsZnvBS038l-DDlNiQg",
+        "sources": [
+            {"label": "Doc Python (PT) — float()", "url": "https://docs.python.org/pt-br/3/library/functions.html#float"},
+        ],
         "starter": "def to_number(s):\n    ...",
         "func": "to_number",
         "tests": (
@@ -1109,5 +1145,133 @@ TRACK = [
             "    pass\n"
         ),
         "points": 40,
+    },
+
+    # ============== Cap 11 — Escrever testes (pytest) / mutation ==============
+    {
+        "ord": 33,
+        "chapter": "11. Escrever testes (pytest)",
+        "title": "Testar is_even (padrão AAA)",
+        "concept": "você escreve o teste; mutation testing avalia",
+        "type": "write_test",
+        "lesson": (
+            "Agora VOCÊ escreve os testes. A função is_even já está pronta.\n"
+            "Padrão AAA: Arrange → Act → Assert. Cada teste é uma função test_*.\n"
+            "Um bom teste cobre o feliz E os limites: par, ímpar, zero, negativo."
+        ),
+        "context": (
+            "A plataforma tem a função CERTA e 3 versões com bugs (mutantes). Seus "
+            "testes precisam PASSAR na certa e FALHAR em cada mutante (matá-los)."
+        ),
+        "instructions": [
+            "Escreva funções começando com `test_` que verificam is_even(n).",
+            "Cubra pelo menos: um par, um ímpar e o zero.",
+            "Cada teste usa `assert is_even(...) == ...`.",
+        ],
+        "example": "def test_par():\n    assert is_even(2) == True",
+        "qa_note": "Cobertura de linha ≠ proteção. Mutante vivo = seu teste não pegou o bug.",
+        "hints": [
+            "Pense em QUAIS entradas distinguem 'par' de 'errado': 2, 3, 0, -4.",
+            "Um teste só para números pares deixa passar o bug 'return True'. Teste ímpar também.",
+            "Escreva test_par, test_impar e test_zero, cada um com um assert.",
+        ],
+        "video": "https://testautomationu.applitools.com/pytest-tutorial/",
+        "sources": [
+            {"label": "Test Automation University — pytest", "url": "https://testautomationu.applitools.com/pytest-tutorial/"},
+            {"label": "Real Python — pytest", "url": "https://realpython.com/pytest-python-testing/"},
+        ],
+        "target_func": "is_even",
+        "reference_impl": "def is_even(n):\n    return n % 2 == 0",
+        "mutants": [
+            "def is_even(n):\n    return True",
+            "def is_even(n):\n    return n % 2 == 1",
+            "def is_even(n):\n    return n > 0 and n % 2 == 0",
+        ],
+        "starter": "def test_par():\n    # Arrange / Act / Assert\n    assert is_even(2) == True\n\n# escreva mais testes: ímpar, zero...\n",
+        "min_tests": 3,
+        "points": 30,
+    },
+    {
+        "ord": 34,
+        "chapter": "11. Escrever testes (pytest)",
+        "title": "Testar apply_discount",
+        "concept": "testes de valor + casos-limite",
+        "type": "write_test",
+        "lesson": (
+            "apply_discount(price, percent) devolve o preço com desconto.\n"
+            "Bons testes cobrem extremos: desconto 0 (nada muda) e 100 (zera)."
+        ),
+        "context": (
+            "3 mutantes plantados: um ignora o desconto, um retorna só o desconto, "
+            "um usa a fórmula errada. Seus testes têm que matar os três."
+        ),
+        "instructions": [
+            "Escreva testes `test_*` para apply_discount(price, percent).",
+            "Cubra: desconto 0, desconto 50 e desconto 100.",
+            "Compare com o valor esperado usando assert.",
+        ],
+        "example": "def test_zero():\n    assert apply_discount(100, 0) == 100",
+        "qa_note": "Boundary value analysis: os extremos (0 e 100) pegam mais bugs.",
+        "hints": [
+            "apply_discount(100, 0) deve ser 100; apply_discount(100, 100) deve ser 0.",
+            "Só testar desconto 0 deixa vivo o mutante 'return price'. Teste 50 e 100 também.",
+            "Escreva test_zero, test_metade e test_total, cada um com um assert.",
+        ],
+        "video": "https://realpython.com/pytest-python-testing/",
+        "sources": [
+            {"label": "Real Python — pytest", "url": "https://realpython.com/pytest-python-testing/"},
+        ],
+        "target_func": "apply_discount",
+        "reference_impl": "def apply_discount(price, percent):\n    return price - price * percent / 100",
+        "mutants": [
+            "def apply_discount(price, percent):\n    return price",
+            "def apply_discount(price, percent):\n    return price * percent / 100",
+            "def apply_discount(price, percent):\n    return price - percent",
+        ],
+        "starter": "def test_zero():\n    assert apply_discount(100, 0) == 100\n\n# mais testes: metade (50), total (100)...\n",
+        "min_tests": 3,
+        "points": 30,
+    },
+    {
+        "ord": 35,
+        "chapter": "11. Escrever testes (pytest)",
+        "title": "Testar que um erro acontece (raise)",
+        "concept": "testar exceções (base do pytest.raises)",
+        "type": "write_test",
+        "lesson": (
+            "ensure_positive(n) devolve n, mas LANÇA ValueError se n <= 0.\n"
+            "Para testar que um erro acontece: tente chamar e capture com try/except.\n"
+            "  try:\n      ensure_positive(0)\n      assert False  # não deveria chegar aqui\n  except ValueError:\n      pass\n"
+            "Em pytest real isso vira `with pytest.raises(ValueError):`."
+        ),
+        "context": (
+            "2 mutantes: um nunca lança (sempre devolve n), outro deixa o zero passar. "
+            "Seu teste de erro precisa matar os dois."
+        ),
+        "instructions": [
+            "Escreva `test_*` para ensure_positive(n).",
+            "Teste o caminho feliz: ensure_positive(5) == 5.",
+            "Teste que n=0 e n=-1 LANÇAM ValueError (use try/except).",
+        ],
+        "example": "def test_positivo():\n    assert ensure_positive(5) == 5",
+        "qa_note": "Testar o caminho de ERRO é metade do trabalho de QA — não só o feliz.",
+        "hints": [
+            "Para o caminho feliz basta um assert. Para o erro, use try/except.",
+            "No except, se o erro NÃO veio, o teste deve falhar (assert False antes do except).",
+            "Cubra n=0 (limite) E n=-1 (negativo) — o mutante que deixa 0 passar precisa morrer.",
+        ],
+        "video": "https://docs.pytest.org/en/stable/how-to/assert.html",
+        "sources": [
+            {"label": "pytest — testar exceções", "url": "https://docs.pytest.org/en/stable/how-to/assert.html#assertions-about-expected-exceptions"},
+        ],
+        "target_func": "ensure_positive",
+        "reference_impl": "def ensure_positive(n):\n    if n <= 0:\n        raise ValueError('precisa ser positivo')\n    return n",
+        "mutants": [
+            "def ensure_positive(n):\n    return n",
+            "def ensure_positive(n):\n    if n < 0:\n        raise ValueError('x')\n    return n",
+        ],
+        "starter": "def test_positivo():\n    assert ensure_positive(5) == 5\n\ndef test_zero_lanca():\n    try:\n        ensure_positive(0)\n        assert False, 'deveria ter lancado ValueError'\n    except ValueError:\n        pass\n\n# adicione teste para n negativo...\n",
+        "min_tests": 2,
+        "points": 35,
     },
 ]

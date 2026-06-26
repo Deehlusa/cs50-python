@@ -5,77 +5,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🐍 Trilha Python para QA</title>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+<!-- CodeMirror 5 (editor com syntax highlight) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <style>
   :root {
-    --bg: #0d1117; --panel: #161b22; --line: #30363d;
-    --txt: #e6edf3; --muted: #8b949e; --accent: #2f81f7;
+    --bg: #0d0f14; --panel: #161b22; --surface: #1c2230; --line: #2a3140;
+    --txt: #e7e9ee; --muted: #8b94a7; --accent: #7c5cff; --accent2: #66d9ef;
     --green: #3fb950; --red: #f85149; --gold: #d29922;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; font-family: -apple-system, system-ui, sans-serif;
+    margin: 0; font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
     background: var(--bg); color: var(--txt); display: flex; height: 100vh;
   }
-  /* Sidebar: a trilha por capitulos */
+  a { color: var(--accent2); }
+  /* Sidebar */
   #sidebar {
-    width: 320px; background: var(--panel); border-right: 1px solid var(--line);
+    width: 330px; background: var(--panel); border-right: 1px solid var(--line);
     overflow-y: auto; padding: 16px; flex-shrink: 0;
   }
-  #sidebar h1 { font-size: 18px; margin: 0 0 10px; }
-  #viewToggle { display: flex; gap: 6px; margin-bottom: 12px; }
-  .tab { flex: 1; background: #21262d; color: var(--muted); border: 1px solid var(--line);
-    border-radius: 8px; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  #sidebar h1 { font-size: 17px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  #viewToggle { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tab { flex: 1; background: var(--surface); color: var(--muted); border: 1px solid var(--line);
+    border-radius: 9px; padding: 9px; font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
   .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  /* TOC do curso */
   .toc-page { padding: 6px 12px 6px 28px; border-radius: 8px; cursor: pointer; margin-bottom: 3px;
     font-size: 13px; border: 1px solid transparent; }
-  .toc-page:hover { background: #21262d; }
-  .toc-page.active { border-color: var(--accent); background: #21262d; }
-  /* Leitor do curso */
+  .toc-page:hover { background: var(--surface); }
+  .toc-page.active { border-color: var(--accent); background: var(--surface); }
   #coursePageTitle { margin: 4px 0 18px; }
   .course-step { margin-bottom: 22px; }
   .course-step .step-text { line-height: 1.7; white-space: pre-wrap; }
   .course-step pre { background: #0b0f14; border: 1px solid var(--line); border-radius: 8px;
     padding: 12px 14px; overflow-x: auto; margin: 10px 0 0; }
-  .course-step pre code { font-family: "SF Mono", Menlo, monospace; font-size: 13px; color: var(--green); }
+  .course-step pre code, .step-text code { font-family: "SF Mono", Menlo, monospace; font-size: 13px; }
+  .course-step pre code { color: var(--accent2); }
+  .step-text code { background: var(--surface); padding: 1px 5px; border-radius: 4px; }
   #courseCredit { color: var(--muted); font-size: 12px; margin-top: 28px;
     border-top: 1px solid var(--line); padding-top: 12px; }
-  .step-text code { background: #21262d; padding: 1px 5px; border-radius: 4px;
-    font-family: "SF Mono", Menlo, monospace; font-size: 13px; }
-  #xpbar-wrap { background: #21262d; border-radius: 6px; height: 10px; margin: 8px 0; overflow: hidden; }
-  #xpbar { background: var(--gold); height: 100%; width: 0; transition: width .4s; }
-  #xptext { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-  .chapter { margin-bottom: 10px; }
-  .chapter-head {
-    display: flex; align-items: center; gap: 8px; cursor: pointer;
-    padding: 8px 10px; border-radius: 8px; font-weight: 600; font-size: 14px;
-  }
-  .chapter-head:hover { background: #21262d; }
+  #progress-wrap { background: var(--surface); border-radius: 6px; height: 8px; margin: 6px 0; overflow: hidden; }
+  #progress-bar { background: linear-gradient(90deg, var(--accent), var(--accent2)); height: 100%; width: 0; transition: width .4s; }
+  #progress-text { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .chapter { margin-bottom: 8px; }
+  .chapter-head { display: flex; align-items: center; gap: 8px; cursor: pointer;
+    padding: 8px 10px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+  .chapter-head:hover { background: var(--surface); }
   .chapter-head .pct { margin-left: auto; font-size: 12px; color: var(--muted); font-weight: 400; }
-  .chapter-bar { height: 4px; background: #21262d; border-radius: 4px; margin: 2px 10px 6px; overflow: hidden; }
+  .chapter-bar { height: 4px; background: var(--surface); border-radius: 4px; margin: 2px 10px 6px; overflow: hidden; }
   .chapter-bar > div { height: 100%; background: var(--green); width: 0; }
-  .ex-list { display: none; }
-  .ex-list.open { display: block; }
-  .ex-item {
-    padding: 7px 10px 7px 28px; border-radius: 8px; cursor: pointer; margin-bottom: 3px;
-    border: 1px solid transparent; display: flex; align-items: center; gap: 8px; font-size: 13px;
-  }
-  .ex-item:hover { background: #21262d; }
-  .ex-item.active { border-color: var(--accent); background: #21262d; }
-  .ex-item .pts { margin-left: auto; color: var(--gold); font-size: 11px; }
+  .ex-list { display: none; } .ex-list.open { display: block; }
+  .ex-item { padding: 7px 10px 7px 28px; border-radius: 8px; cursor: pointer; margin-bottom: 3px;
+    border: 1px solid transparent; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .ex-item:hover { background: var(--surface); }
+  .ex-item.active { border-color: var(--accent); background: var(--surface); }
+  .ex-item .tag { margin-left: auto; font-size: 10px; color: var(--accent2); border: 1px solid var(--line);
+    padding: 1px 6px; border-radius: 20px; }
   .ex-item.done .title { color: var(--green); }
   /* Main */
-  #main { flex: 1; overflow-y: auto; padding: 28px 36px; max-width: 880px; }
+  #main { flex: 1; overflow-y: auto; padding: 28px 40px; max-width: 900px; }
   .chapter-desc { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
-  .lesson-chapter { background: var(--panel); border: 1px solid var(--line);
-    border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; }
-  .lesson-chapter summary { cursor: pointer; font-weight: 600; color: var(--accent); }
-  .lesson-chapter .lesson-body { white-space: pre-wrap; line-height: 1.6; margin: 12px 0; font-size: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 16px; }
+  details.lesson-chapter summary, details.media summary, details.hintbox summary { cursor: pointer; font-weight: 600; color: var(--accent2); }
+  .lesson-body { white-space: pre-wrap; line-height: 1.6; margin: 12px 0; font-size: 14px; }
   .course-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px;
-    padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; margin: 12px 0 10px; }
-  .course-btn:hover { filter: brightness(1.1); }
-  #courseOverlay { display: none; position: fixed; inset: 0; z-index: 100;
-    background: var(--bg); flex-direction: column; }
+    padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; margin: 10px 0; }
+  .course-btn:hover { filter: brightness(1.12); }
+  #courseOverlay { display: none; position: fixed; inset: 0; z-index: 100; background: var(--bg); flex-direction: column; }
   #courseOverlay.open { display: flex; }
   #courseBar { display: flex; align-items: center; gap: 12px; padding: 8px 14px;
     background: var(--panel); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
@@ -83,45 +82,55 @@
   #closeCourse { background: var(--red); color: #fff; border: none; border-radius: 6px;
     padding: 7px 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   #courseFrame { flex: 1; width: 100%; border: none; }
-  .resources { display: flex; flex-direction: column; gap: 6px; }
-  .resources a { color: var(--accent); font-size: 13px; text-decoration: none; }
-  .resources a:hover { text-decoration: underline; }
-  .lesson-ex { background: #0f1a2e; border: 1px solid #1f3a5f; border-radius: 8px;
-    padding: 12px 16px; margin: 14px 0 18px; }
-  .lesson-ex #lesson { white-space: pre-wrap; line-height: 1.6; font-size: 14px;
-    font-family: "SF Mono", Menlo, monospace; }
-  .concept { color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
-  h2 { margin: 4px 0 14px; }
-  .context { line-height: 1.6; margin-bottom: 16px; }
-  .label { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 18px 0 6px; }
+  .resources { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .resources a { font-size: 13px; text-decoration: none; } .resources a:hover { text-decoration: underline; }
+  .lesson-ex { background: #11192b; border: 1px solid #243a5e; border-radius: 10px; padding: 12px 16px; margin: 12px 0; }
+  .lesson-ex .lesson-mono { white-space: pre-wrap; line-height: 1.6; font-size: 13.5px; font-family: "SF Mono", Menlo, monospace; }
+  .concept { color: var(--accent2); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+  h2.ex-title { margin: 4px 0 14px; }
+  .context { line-height: 1.6; margin-bottom: 8px; }
+  .label { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 16px 0 6px; }
   ol.instructions { margin: 0; padding-left: 22px; line-height: 1.7; }
   .example { background: #0b0f14; border: 1px solid var(--line); border-radius: 8px;
-    padding: 10px 14px; font-family: "SF Mono", Menlo, monospace; font-size: 13px; color: var(--green); }
-  .qa { border-left: 3px solid var(--gold); padding: 8px 14px; margin: 16px 0;
+    padding: 10px 14px; font-family: "SF Mono", Menlo, monospace; font-size: 13px; color: var(--accent2); white-space: pre-wrap; }
+  .qa { border-left: 3px solid var(--gold); padding: 8px 14px; margin: 14px 0;
     background: #1c1a12; color: #e3c56b; font-size: 14px; border-radius: 0 6px 6px 0; }
-  details.hint { margin: 14px 0; }
-  details.hint summary { cursor: pointer; color: var(--accent); font-size: 14px; }
-  details.hint p { background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-    padding: 10px 14px; margin: 8px 0 0; line-height: 1.5; }
-  textarea { width: 100%; height: 240px; background: #0b0f14; color: var(--txt);
-    border: 1px solid var(--line); border-radius: 8px; padding: 14px; font-size: 14px;
-    font-family: "SF Mono", Menlo, monospace; resize: vertical; tab-size: 4; }
-  .row { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
-  button { border: none; border-radius: 8px; padding: 10px 18px; font-size: 14px;
-    font-weight: 600; cursor: pointer; }
-  #run { background: #21262d; color: var(--txt); border: 1px solid var(--line); }
+  .predict { background: #13182a; border: 1px dashed var(--accent); border-radius: 10px; padding: 12px 14px; margin: 14px 0; }
+  .predict .label { margin-top: 0; }
+  .predict input { width: 100%; background: #0b0f14; color: var(--txt); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: "SF Mono", Menlo, monospace; }
+  .target-fn { background: #0b0f14; border: 1px solid var(--line); border-radius: 8px; padding: 4px 0; margin: 6px 0 4px; }
+  .CodeMirror { height: auto; min-height: 220px; border: 1px solid var(--line); border-radius: 10px;
+    font-family: "SF Mono", Menlo, monospace; font-size: 14px; }
+  .CodeMirror-scroll { min-height: 220px; }
+  .row { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; align-items: center; }
+  button { border: none; border-radius: 9px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; transition: .12s; }
+  #run { background: var(--surface); color: var(--txt); border: 1px solid var(--line); }
+  #run:hover { border-color: var(--accent2); }
   #grade { background: var(--accent); color: #fff; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  #output { margin-top: 14px; padding: 14px; border-radius: 8px; white-space: pre-wrap;
-    font-family: "SF Mono", Menlo, monospace; font-size: 13px; display: none; }
+  #grade:hover { filter: brightness(1.12); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  #output { margin-top: 12px; padding: 14px; border-radius: 10px; white-space: pre-wrap;
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px; display: none; line-height: 1.5; }
   #output.ok { display: block; background: #12261a; border: 1px solid var(--green); }
   #output.err { display: block; background: #2a1416; border: 1px solid var(--red); }
-  #feedback { margin-top: 14px; padding: 16px; border-radius: 8px; display: none;
+  #output details { margin-top: 8px; } #output summary { cursor: pointer; color: var(--muted); }
+  #output pre { margin: 6px 0 0; white-space: pre-wrap; color: var(--muted); font-size: 12px; }
+  .mut-line { display: flex; gap: 8px; align-items: baseline; margin: 4px 0; font-size: 13px; }
+  #feedback { margin-top: 12px; padding: 16px; border-radius: 10px; display: none;
     background: var(--panel); border: 1px solid var(--accent); line-height: 1.55; white-space: pre-wrap; }
   #feedback.show { display: block; }
   .badge { display: inline-block; background: var(--gold); color: #000; font-weight: 700;
     padding: 2px 10px; border-radius: 20px; font-size: 13px; }
+  .explain textarea, .tutor textarea { width: 100%; min-height: 70px; background: #0b0f14; color: var(--txt);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 14px; resize: vertical; font-family: inherit; }
   #status { color: var(--muted); font-size: 13px; }
+  /* Toast anti-copy-paste */
+  #toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--accent); color: #fff; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 8px 30px rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: .3s; z-index: 200; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -131,8 +140,8 @@
       <button id="tabCourse" class="tab active">📚 Curso</button>
       <button id="tabPractice" class="tab">🎯 Prática</button>
     </div>
-    <div id="xpbar-wrap"><div id="xpbar"></div></div>
-    <div id="xptext">carregando…</div>
+    <div id="progress-wrap"><div id="progress-bar"></div></div>
+    <div id="progress-text">carregando…</div>
     <div id="courseList"></div>
     <div id="list" style="display:none"></div>
   </aside>
@@ -140,7 +149,7 @@
   <main id="main">
     <div id="status">⏳ Iniciando Pyodide (Python no navegador)…</div>
 
-    <!-- Leitor do curso (futurecoder em PT-BR) -->
+    <!-- Leitor do curso (futurecoder PT-BR) -->
     <div id="coursePage" style="display:none">
       <div class="chapter-desc" id="coursePageChapter"></div>
       <h2 id="coursePageTitle"></h2>
@@ -152,22 +161,23 @@
       <div id="courseCredit"></div>
     </div>
 
+    <!-- Exercicio de pratica -->
     <div id="exercise" style="display:none">
       <div class="chapter-desc" id="chapterDesc"></div>
 
-      <details class="lesson-chapter" id="chapterLessonBox">
+      <details class="lesson-chapter card" id="chapterLessonBox">
         <summary>📖 Aula do capítulo (teoria em português)</summary>
         <div class="lesson-body" id="chapterLesson"></div>
-        <button id="openCourse" class="course-btn">📚 Abrir o curso completo aqui (futurecoder, open-source)</button>
+        <button id="openCourse" class="course-btn">📚 Abrir o curso completo (futurecoder, open-source)</button>
         <div class="resources" id="chapterResources"></div>
       </details>
 
       <div class="concept" id="concept"></div>
-      <h2 id="title"></h2>
+      <h2 class="ex-title" id="title"></h2>
 
-      <div class="lesson-ex" id="lessonEx">
+      <div class="lesson-ex" id="lessonExBox">
         <div class="label" style="margin-top:0">📚 Aprenda primeiro</div>
-        <div id="lesson"></div>
+        <div class="lesson-mono" id="lesson"></div>
       </div>
 
       <div class="context" id="context"></div>
@@ -180,68 +190,137 @@
 
       <div class="qa" id="qa"></div>
 
-      <details class="hint"><summary>💡 Mostrar dica</summary><p id="hint"></p></details>
+      <!-- Funcao sob teste (so no modo write_test) -->
+      <div id="targetBox" style="display:none">
+        <div class="label">🔍 Função sob teste (já pronta — você escreve os testes dela)</div>
+        <div class="target-fn"><textarea id="targetFn"></textarea></div>
+      </div>
 
-      <div class="label">⌨️ Seu código (edite aqui ou cole do VSCode)</div>
+      <!-- Passo 1: prever (aprender fazendo, sem copy-paste) -->
+      <div class="predict" id="predictBox" style="display:none">
+        <div class="label">🤔 Passo 1 — Prevê antes de rodar</div>
+        <div id="predictQ" style="margin-bottom:8px"></div>
+        <input id="predictInput" placeholder="Escreva sua previsão aqui (pensar primeiro fixa o aprendizado)…">
+      </div>
+
+      <div class="label" id="codeLabel">⌨️ Seu código — digite você mesmo (é assim que se aprende)</div>
       <textarea id="code" spellcheck="false"></textarea>
+
       <div class="row">
-        <button id="run">▶ Rodar testes (Pyodide)</button>
-        <button id="grade" disabled>🤖 Validar com agy e ganhar XP</button>
+        <button id="run">▶ Rodar (Pyodide)</button>
+        <button id="grade" disabled>🤖 Validar com agy</button>
+        <button id="saveBtn" class="btn-ghost" title="Salva em datacamp/saved_code/">💾 Salvar no projeto</button>
       </div>
       <div id="output"></div>
+
+      <!-- Dicas progressivas -->
+      <details class="hintbox card" id="hintBox" style="margin-top:14px">
+        <summary>💡 Preciso de uma dica</summary>
+        <div id="hintList"></div>
+        <button id="nextHint" class="course-btn" style="margin-top:6px">Mostrar próxima dica</button>
+      </details>
+
+      <!-- Explique (Feynman) -->
+      <div class="explain card" id="explainBox" style="display:none">
+        <div class="label" style="margin-top:0">🧠 Explique com suas palavras (pra você mesmo)</div>
+        <textarea id="explainInput" placeholder="Em 1 frase: o que seu código faz e por quê? Se travar aqui, você ainda não entendeu de verdade."></textarea>
+      </div>
+
       <div id="feedback"></div>
+
+      <!-- Tutor IA inline -->
+      <details class="tutor card" id="tutorBox" style="margin-top:14px">
+        <summary>💬 Perguntar ao tutor (socrático, não entrega a resposta)</summary>
+        <div class="row" style="margin:10px 0 6px">
+          <label style="font-size:13px;color:var(--muted)">Tutor:
+            <select id="tutorPick" style="background:var(--surface);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:4px 8px">
+              <option value="agy">agy (grátis)</option>
+              <option value="claude">Claude (premium)</option>
+            </select>
+          </label>
+        </div>
+        <textarea id="tutorQ" placeholder="Qual sua dúvida? (ex: 'não entendi por que dá NameError')"></textarea>
+        <div class="row"><button id="tutorAsk" class="course-btn">Perguntar</button></div>
+        <div id="tutorAns" style="white-space:pre-wrap;line-height:1.55"></div>
+      </details>
+
+      <!-- Midia: video + fontes (opcional, DEPOIS da pratica) -->
+      <details class="media card" id="mediaBox" style="display:none">
+        <summary>📺 Vídeo e 📖 fontes (opcional)</summary>
+        <div id="mediaBody" class="resources"></div>
+      </details>
     </div>
   </main>
 
-  <!-- Curso futurecoder embutido (open-source, MIT) -->
   <div id="courseOverlay">
     <div id="courseBar">
-      <span>📚 futurecoder — curso interativo (open-source, MIT). 💡 No 1º uso: menu ☰ → Settings → Language → <b>Português</b> (ele lembra).</span>
+      <span>📚 futurecoder — curso interativo (open-source, MIT).</span>
       <button id="closeCourse">✕ Fechar e voltar aos exercícios</button>
     </div>
     <iframe id="courseFrame" title="futurecoder"></iframe>
   </div>
 
+  <div id="toast"></div>
+
 <script>
 let pyodide, state, current = null, lastTestsPassed = false, openChapter = null;
-
+let editor = null, targetEditor = null, hasRun = false, hintLevel = 0;
 let course = [], courseAttribution = "", flatPages = [], curPage = -1;
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 2600);
+}
 
 async function boot() {
   pyodide = await loadPyodide();
   document.getElementById("status").style.display = "none";
+  // CodeMirror no editor principal
+  editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+    mode: "python", theme: "material-darker", lineNumbers: true,
+    indentUnit: 4, tabSize: 4, indentWithTabs: false,
+  });
+  editor.on("change", () => {
+    // anti-copy-paste / forca rodar de novo a cada edicao
+    hasRun = false;
+    document.getElementById("grade").disabled = true;
+  });
+  editor.on("paste", () => toast("✍️ Digite você mesmo — copiar e colar pula o aprendizado!"));
+  targetEditor = CodeMirror.fromTextArea(document.getElementById("targetFn"), {
+    mode: "python", theme: "material-darker", readOnly: true, lineNumbers: true,
+  });
+
   await refresh();
-  // carrega o curso PT-BR (futurecoder)
   const cdata = await (await fetch("/api/course")).json();
   course = cdata.course || [];
   courseAttribution = cdata.attribution || "";
   flatPages = [];
   course.forEach((c, ci) => c.pages.forEach((p, pi) => flatPages.push({ ci, pi })));
   renderCourseTOC();
-  // prepara prática (escondida) e abre o curso por padrão
   const next = state.track.find(e => e.status !== "done") || state.track[0];
-  if (next) { openChapter = next.chapter; }
+  if (next) openChapter = next.chapter;
   setView("course");
   if (flatPages.length) selectPage(0, 0);
 }
 
 function setView(v) {
-  const course = v === "course";
-  document.getElementById("tabCourse").classList.toggle("active", course);
-  document.getElementById("tabPractice").classList.toggle("active", !course);
-  document.getElementById("courseList").style.display = course ? "block" : "none";
-  document.getElementById("list").style.display = course ? "none" : "block";
-  document.getElementById("coursePage").style.display = course ? "block" : "none";
-  document.getElementById("exercise").style.display = course ? "none" : (current ? "block" : "none");
-  if (!course && current) select(current);
+  const isCourse = v === "course";
+  document.getElementById("tabCourse").classList.toggle("active", isCourse);
+  document.getElementById("tabPractice").classList.toggle("active", !isCourse);
+  document.getElementById("courseList").style.display = isCourse ? "block" : "none";
+  document.getElementById("list").style.display = isCourse ? "none" : "block";
+  document.getElementById("coursePage").style.display = isCourse ? "block" : "none";
+  document.getElementById("exercise").style.display = isCourse ? "none" : (current ? "block" : "none");
+  if (!isCourse && current) select(current);
 }
 
-// markdown mínimo: `code` e *itálico*, com HTML escapado
 function md(text) {
-  const esc = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const esc = (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return esc.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
+/* ---------------- Curso (futurecoder reader) ---------------- */
 function renderCourseTOC() {
   const list = document.getElementById("courseList");
   list.innerHTML = "";
@@ -293,6 +372,7 @@ function selectPage(ci, pi, flat) {
   document.getElementById("main").scrollTop = 0;
 }
 
+/* ---------------- Prática ---------------- */
 async function refresh() {
   state = await (await fetch("/api/track")).json();
   renderSidebar();
@@ -300,36 +380,33 @@ async function refresh() {
 
 function renderSidebar() {
   const pct = state.max_xp ? Math.round(100 * state.total_xp / state.max_xp) : 0;
-  document.getElementById("xpbar").style.width = pct + "%";
-  document.getElementById("xptext").textContent =
-    `${state.total_xp} / ${state.max_xp} XP  (${pct}%)`;
+  const doneCount = state.track.filter(e => e.status === "done").length;
+  document.getElementById("progress-bar").style.width = pct + "%";
+  document.getElementById("progress-text").textContent =
+    `${doneCount}/${state.track.length} exercícios concluídos (${pct}%)`;
   const list = document.getElementById("list");
   list.innerHTML = "";
-
   state.chapters.forEach(ch => {
     const wrap = document.createElement("div");
     wrap.className = "chapter";
     const isOpen = openChapter === ch.title;
     wrap.innerHTML = `
       <div class="chapter-head">
-        <span>${isOpen ? "▾" : "▸"}</span>
-        <span>${ch.title}</span>
+        <span>${isOpen ? "▾" : "▸"}</span><span>${ch.title}</span>
         <span class="pct">${ch.done}/${ch.total}</span>
       </div>
       <div class="chapter-bar"><div style="width:${ch.pct}%"></div></div>
       <div class="ex-list ${isOpen ? "open" : ""}"></div>`;
     wrap.querySelector(".chapter-head").onclick = () => {
-      openChapter = isOpen ? null : ch.title;
-      renderSidebar();
+      openChapter = isOpen ? null : ch.title; renderSidebar();
     };
     const exList = wrap.querySelector(".ex-list");
     state.track.filter(e => e.chapter === ch.title).forEach(ex => {
       const div = document.createElement("div");
-      div.className = "ex-item" + (ex.status === "done" ? " done" : "") +
-                      (current === ex.id ? " active" : "");
+      div.className = "ex-item" + (ex.status === "done" ? " done" : "") + (current === ex.id ? " active" : "");
+      const tag = ex.type === "write_test" ? `<span class="tag">teste</span>` : "";
       div.innerHTML = `<span>${ex.status === "done" ? "✅" : "○"}</span>
-        <span class="title">${ex.title}</span>
-        <span class="pts">${ex.points} XP</span>`;
+        <span class="title">${ex.title}</span>${tag}`;
       div.onclick = () => select(ex.id);
       exList.appendChild(div);
     });
@@ -337,133 +414,292 @@ function renderSidebar() {
   });
 }
 
+function showEl(id, on) { document.getElementById(id).style.display = on ? "" : "none"; }
+
 function select(id) {
-  current = id; lastTestsPassed = false;
+  current = id; lastTestsPassed = false; hasRun = false; hintLevel = 0;
   const ex = state.track.find(e => e.id === id);
+  const isTest = ex.type === "write_test";
   openChapter = ex.chapter;
   const ch = state.chapters.find(c => c.title === ex.chapter);
   renderSidebar();
   document.getElementById("exercise").style.display = "block";
   document.getElementById("chapterDesc").textContent = ch ? ch.title + " — " + ch.description : "";
-  // Aula do capitulo + links pra base (PT-BR)
   document.getElementById("chapterLesson").textContent = ch ? ch.lesson : "";
+  // recursos do capitulo
   const resBox = document.getElementById("chapterResources");
   resBox.innerHTML = "";
-  if (ch && ch.resources) {
-    ch.resources.forEach(r => {
-      const a = document.createElement("a");
-      a.href = r.url; a.target = "_blank"; a.rel = "noopener";
-      a.textContent = "🔗 " + r.label;
-      resBox.appendChild(a);
-    });
-  }
-  document.getElementById("concept").textContent = ex.concept;
+  (ch && ch.resources || []).forEach(r => {
+    const a = document.createElement("a");
+    a.href = r.url; a.target = "_blank"; a.rel = "noopener"; a.textContent = "🔗 " + r.label;
+    resBox.appendChild(a);
+  });
+  document.getElementById("concept").textContent = ex.concept || "";
   document.getElementById("title").textContent = ex.title;
   document.getElementById("lesson").textContent = ex.lesson || "";
-  document.getElementById("context").textContent = ex.context;
-  const ol = document.getElementById("instructions");
-  ol.innerHTML = "";
-  ex.instructions.forEach(step => {
-    const li = document.createElement("li"); li.textContent = step; ol.appendChild(li);
+  showEl("lessonExBox", !!ex.lesson);
+  document.getElementById("context").textContent = ex.context || "";
+  const ol = document.getElementById("instructions"); ol.innerHTML = "";
+  (ex.instructions || []).forEach(s => { const li = document.createElement("li"); li.textContent = s; ol.appendChild(li); });
+  document.getElementById("example").textContent = ex.example || "";
+  document.getElementById("qa").textContent = "💡 No QA: " + (ex.qa_note || "");
+
+  // funcao sob teste (write_test)
+  showEl("targetBox", isTest && !!ex.reference_impl);
+  if (isTest && ex.reference_impl) { targetEditor.setValue(ex.reference_impl); setTimeout(() => targetEditor.refresh(), 0); }
+
+  // passo prever
+  showEl("predictBox", !!ex.predict);
+  document.getElementById("predictQ").textContent = ex.predict || "";
+  document.getElementById("predictInput").value = "";
+
+  // label do editor muda no modo teste
+  document.getElementById("codeLabel").textContent = isTest
+    ? "⌨️ Seus testes — escreva funções test_* (digite você mesmo)"
+    : "⌨️ Seu código — digite você mesmo (é assim que se aprende)";
+
+  // editor
+  editor.setValue(ex.last_code || ex.starter || "");
+  setTimeout(() => editor.refresh(), 0);
+  document.getElementById("run").textContent = isTest ? "▶ Rodar meus testes" : "▶ Rodar (Pyodide)";
+
+  // dicas progressivas
+  const hints = (ex.hints && ex.hints.length) ? ex.hints : (ex.hint ? [ex.hint] : []);
+  ex._hints = hints;
+  document.getElementById("hintList").innerHTML = "";
+  showEl("hintBox", hints.length > 0);
+  document.getElementById("nextHint").style.display = hints.length ? "" : "none";
+
+  // midia
+  const media = document.getElementById("mediaBody"); media.innerHTML = "";
+  if (ex.video) {
+    const a = document.createElement("a"); a.href = ex.video; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "📺 Assistir um vídeo sobre isso"; media.appendChild(a);
+  }
+  (ex.sources || []).forEach(s => {
+    const a = document.createElement("a"); a.href = s.url; a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "📖 " + s.label; media.appendChild(a);
   });
-  document.getElementById("example").textContent = ex.example;
-  document.getElementById("qa").textContent = "💡 No QA: " + ex.qa_note;
-  document.getElementById("hint").textContent = ex.hint;
-  document.getElementById("code").value = ex.last_code || ex.starter || "";
+  showEl("mediaBox", !!ex.video || (ex.sources && ex.sources.length));
+  document.getElementById("mediaBox").open = false;
+
+  // reset estados
   document.getElementById("output").className = "";
   document.getElementById("feedback").className = "";
   document.getElementById("grade").disabled = true;
+  showEl("explainBox", false);
+  document.getElementById("tutorAns").textContent = "";
 }
 
-// Roda o codigo do aluno + os testes no Pyodide. Verde/vermelho na hora.
+/* dicas progressivas */
+document.getElementById("nextHint").onclick = () => {
+  const ex = state.track.find(e => e.id === current);
+  const hints = ex._hints || [];
+  if (hintLevel >= hints.length) return;
+  const p = document.createElement("p");
+  p.style.cssText = "background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:8px 0 0;line-height:1.5";
+  p.textContent = `Dica ${hintLevel + 1}: ${hints[hintLevel]}`;
+  document.getElementById("hintList").appendChild(p);
+  hintLevel++;
+  if (hintLevel >= hints.length) document.getElementById("nextHint").style.display = "none";
+};
+
+/* erros humanizados */
+function humanize(tb) {
+  const lines = (tb || "").trim().split("\n");
+  const last = lines[lines.length - 1] || "";
+  const map = [
+    [/NameError: name '(.+?)' is not defined/, (m) => `'${m[1]}' não foi definido. Erro de digitação no nome? Ou esqueceu de criar a variável/função?`],
+    [/IndentationError/, () => "Indentação errada — o Python usa os espaços pra saber o que está 'dentro' do bloco. Alinhe as linhas."],
+    [/SyntaxError/, () => "Erro de sintaxe — confira ':' no fim de def/if/for e os parênteses/aspas."],
+    [/AssertionError/, () => "Um teste falhou: o valor que saiu não bateu com o esperado. Reveja a lógica."],
+    [/ZeroDivisionError/, () => "Divisão por zero — trate o caso do divisor ser 0 antes de dividir."],
+    [/IndexError/, () => "Índice fora da lista — você acessou uma posição que não existe."],
+    [/KeyError: (.+)/, (m) => `A chave ${m[1]} não existe no dicionário.`],
+    [/TypeError: (.+)/, (m) => `Tipos incompatíveis: ${m[1]} — ex: somar texto com número, ou argumentos errados.`],
+    [/ValueError: (.+)/, (m) => `Valor inválido: ${m[1]}`],
+  ];
+  for (const [re, fn] of map) { const m = last.match(re); if (m) return fn(m); }
+  return last || "Algo deu errado.";
+}
+
 async function runTests() {
   const ex = state.track.find(e => e.id === current);
-  const code = document.getElementById("code").value;
   const out = document.getElementById("output");
+  const code = editor.getValue();
+  if (ex.predict && !document.getElementById("predictInput").value.trim()) {
+    toast("🤔 Escreve sua previsão primeiro (Passo 1) — pensar antes ajuda a fixar.");
+  }
+  if (ex.type === "write_test") return runTestWriting(ex, code, out);
+
   pyodide.globals.set("user_code", code);
-  pyodide.globals.set("test_code", ex.tests);
+  pyodide.globals.set("test_code", ex.tests || "");
   const harness = `
 import io, contextlib, traceback
-_g = {}
-_result = "PASS"
-_msg = ""
+_g = {}; _r = "PASS"; _m = ""; _stdout = ""
 try:
-    with contextlib.redirect_stdout(io.StringIO()):
+    _buf = io.StringIO()
+    with contextlib.redirect_stdout(_buf):
         exec(user_code, _g)
         exec(test_code, _g)
+    _stdout = _buf.getvalue()
 except Exception:
-    _result = "FAIL"
-    _msg = traceback.format_exc()
-(_result, _msg)
+    _r = "FAIL"; _m = traceback.format_exc()
+(_r, _m, _stdout)
 `;
   try {
-    const [result, msg] = (await pyodide.runPythonAsync(harness)).toJs();
+    const [result, msg, stdout] = (await pyodide.runPythonAsync(harness)).toJs();
+    hasRun = true;
     if (result === "PASS") {
       out.className = "ok";
-      out.textContent = "✅ Todos os testes passaram! Agora valide com agy pra ganhar XP.";
+      out.innerHTML = "✅ <b>Todos os testes passaram!</b> Agora explique e valide com agy."
+        + (stdout ? `\n\n<span style="color:var(--muted)">saída:</span>\n${md(stdout)}` : "");
       lastTestsPassed = true;
+      showEl("explainBox", true);
     } else {
       out.className = "err";
-      out.textContent = "❌ Falhou:\n\n" + msg;
+      out.innerHTML = `❌ <b>${humanize(msg)}</b>`
+        + `<details><summary>ver o erro técnico completo</summary><pre>${md(msg)}</pre></details>`;
       lastTestsPassed = false;
     }
     document.getElementById("grade").disabled = false;
   } catch (e) {
-    out.className = "err";
-    out.textContent = "❌ Erro ao rodar:\n\n" + e;
+    out.className = "err"; out.textContent = "❌ Erro ao rodar: " + e;
   }
 }
 
-// Manda pro agy (backend) validar a qualidade e dar XP.
+async function runTestWriting(ex, code, out) {
+  pyodide.globals.set("test_code", code);
+  pyodide.globals.set("ref_impl", ex.reference_impl || "");
+  pyodide.globals.set("mutants_json", JSON.stringify(ex.mutants || []));
+  pyodide.globals.set("min_tests", ex.min_tests || 0);
+  const harness = `
+import io, contextlib, traceback, re, json
+_names = re.findall(r"def\\s+(test_\\w+)\\s*\\(", test_code)
+_mut = json.loads(mutants_json)
+_rep = {"reference_ok": False, "killed": [], "survived": [], "n_tests": len(_names),
+        "min_tests": min_tests, "ref_trace": "", "total": len(_mut)}
+def _run(impl):
+    g = {}
+    with contextlib.redirect_stdout(io.StringIO()):
+        exec(impl, g); exec(test_code, g)
+        for n in _names: g[n]()
+try:
+    _run(ref_impl); _rep["reference_ok"] = True
+except Exception:
+    _rep["ref_trace"] = traceback.format_exc()
+for _i, _m in enumerate(_mut):
+    try:
+        _run(_m); _rep["survived"].append(_i)
+    except Exception:
+        _rep["killed"].append(_i)
+json.dumps(_rep)
+`;
+  try {
+    const rep = JSON.parse(await pyodide.runPythonAsync(harness));
+    hasRun = true;
+    document.getElementById("grade").disabled = false;
+    const enough = rep.n_tests >= rep.min_tests;
+    const allKilled = rep.survived.length === 0 && rep.total > 0;
+    const passed = rep.reference_ok && allKilled && enough;
+    lastTestsPassed = passed;
+    let html = "";
+    if (!rep.reference_ok) {
+      out.className = "err";
+      html = `❌ <b>Seus testes falham na função CERTA.</b> Um teste bom passa na implementação correta.`
+        + `<details><summary>ver erro</summary><pre>${md(rep.ref_trace)}</pre></details>`;
+    } else {
+      html = `Testes na função correta: <b style="color:var(--green)">passaram ✓</b>\n`;
+      html += `Funções de teste escritas: <b>${rep.n_tests}</b> (mínimo ${rep.min_tests}) ${enough ? "✓" : "❌"}\n\n`;
+      html += `<b>Bugs plantados (mutantes):</b>\n`;
+      for (let i = 0; i < rep.total; i++) {
+        const killed = rep.killed.includes(i);
+        html += `<div class="mut-line">${killed ? "✅" : "❌"} mutante ${i + 1}: `
+          + (killed ? `<span style="color:var(--green)">morto (seu teste pegou o bug)</span>` : `<span style="color:var(--red)">sobreviveu — falta um teste que pegue este bug</span>`) + `</div>`;
+      }
+      if (passed) { out.className = "ok"; html = `🎯 <b>Todos os mutantes mortos!</b> Seus testes são fortes.\n\n` + html; showEl("explainBox", true); }
+      else { out.className = "err"; html = `🔁 <b>Quase!</b> Fortaleça os testes até matar todos os mutantes.\n\n` + html; }
+    }
+    out.innerHTML = html;
+  } catch (e) {
+    out.className = "err"; out.textContent = "❌ Erro ao rodar seus testes: " + e;
+  }
+}
+
 async function grade() {
+  const ex = state.track.find(e => e.id === current);
   const btn = document.getElementById("grade");
   const fb = document.getElementById("feedback");
-  btn.disabled = true; btn.textContent = "🤖 agy analisando…";
-  fb.className = "show"; fb.textContent = "Aguarde, agy está revisando seu código…";
+  if (!hasRun) { toast("▶ Rode primeiro — sem copy-paste de resultado!"); return; }
+  btn.disabled = true; btn.textContent = "🤖 analisando…";
+  fb.className = "show"; fb.textContent = "Aguarde, agy está revisando…";
   try {
     const res = await fetch("/api/grade", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        exercise_id: current,
-        code: document.getElementById("code").value,
-        tests_passed: lastTestsPassed,
-      }),
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ exercise_id: current, code: editor.getValue(), tests_passed: lastTestsPassed }),
     });
     const data = await res.json();
     let head = "";
-    if (data.xp_awarded > 0) head = `<span class="badge">+${data.xp_awarded} XP 🎉</span>\n\n`;
-    else if (data.already_done) head = "✅ Já concluído antes (sem XP repetido).\n\n";
-    else if (!data.passed) head = "🔁 Ainda não passou — leia o feedback e tente de novo.\n\n";
-    fb.innerHTML = head + (data.feedback || "");
+    if (data.xp_awarded > 0) head = `<span class="badge">✓ concluído 🎉</span>\n\n`;
+    else if (data.already_done) head = "✅ Já concluído antes.\n\n";
+    else if (!data.passed) head = "🔁 Ainda não — leia o feedback e tente de novo.\n\n";
+    fb.innerHTML = head + md(data.feedback || "");
     await refresh();
   } catch (e) {
     fb.textContent = "Erro ao falar com o backend: " + e;
   } finally {
-    btn.disabled = false; btn.textContent = "🤖 Validar com agy e ganhar XP";
+    btn.disabled = false; btn.textContent = "🤖 Validar com agy";
   }
 }
 
-// Curso futurecoder embutido (lazy-load: só carrega o iframe ao abrir).
+async function saveCode() {
+  const ex = state.track.find(e => e.id === current);
+  const slug = (ex.func || ex.title || "exercicio").toString();
+  try {
+    const res = await fetch("/api/save-code", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, code: editor.getValue() }),
+    });
+    const data = await res.json();
+    toast(data.ok ? "💾 Salvo em " + data.path : "Erro: " + (data.error || "falhou"));
+  } catch (e) { toast("Erro ao salvar: " + e); }
+}
+
+async function askTutor() {
+  const ex = state.track.find(e => e.id === current);
+  const ans = document.getElementById("tutorAns");
+  const q = document.getElementById("tutorQ").value;
+  ans.textContent = "💬 pensando…";
+  try {
+    const res = await fetch("/api/tutor", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tutor: document.getElementById("tutorPick").value,
+        context: `${ex.title}\n${ex.context}\n${(ex.instructions || []).join("\n")}`,
+        question: q, code: editor.getValue(),
+      }),
+    });
+    const data = await res.json();
+    ans.textContent = data.feedback || "(sem resposta)";
+  } catch (e) { ans.textContent = "Erro ao falar com o tutor: " + e; }
+}
+
+/* curso embutido + navegacao */
 document.getElementById("openCourse").onclick = (e) => {
   e.preventDefault();
   const frame = document.getElementById("courseFrame");
-  if (!frame.src) frame.src = "https://futurecoder.io/";
+  if (!frame.src) frame.src = "/course/";
   document.getElementById("courseOverlay").classList.add("open");
 };
-document.getElementById("closeCourse").onclick = () => {
-  document.getElementById("courseOverlay").classList.remove("open");
-};
-
-// Abas Curso / Prática
+document.getElementById("closeCourse").onclick = () => document.getElementById("courseOverlay").classList.remove("open");
 document.getElementById("tabCourse").onclick = () => setView("course");
 document.getElementById("tabPractice").onclick = () => setView("practice");
-// Navegação de páginas do curso
 document.getElementById("coursePrev").onclick = () => { if (curPage > 0) selectPage(0, 0, curPage - 1); };
 document.getElementById("courseNext").onclick = () => { if (curPage < flatPages.length - 1) selectPage(0, 0, curPage + 1); };
-
 document.getElementById("run").onclick = runTests;
 document.getElementById("grade").onclick = grade;
+document.getElementById("saveBtn").onclick = saveCode;
+document.getElementById("tutorAsk").onclick = askTutor;
 boot();
 </script>
 </body>

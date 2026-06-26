@@ -5,6 +5,7 @@ import "./css/pygments.css"
 import "./css/github-markdown.css"
 import "./css/dark.scss"
 import chapters from "./chapters.json"
+import mediaBr from "./media_br.json"
 import {connect} from "react-redux";
 import {
   addSpecialMessage,
@@ -27,6 +28,7 @@ import {
 } from "./book/store";
 import {courseCompletion, saveCodeToProject, askTutor} from "./book/serverSync";
 import {ClearProgressButton} from "./components/ClearProgressButton";
+import {PracticePanel, practiceStats, getStreak} from "./components/PracticePanel";
 import Popup from "reactjs-popup";
 import AceEditor from "react-ace";
 import Collapsible from 'react-collapsible';
@@ -62,6 +64,225 @@ import terms from "./terms.json"
 import _ from "lodash";
 import {otherVisibleLanguages} from "./languages";
 
+// ── Lookup: page slug → chapter title (built once at module load) ──────────
+const slugToChapter = {};
+chapters.forEach(ch => {
+  ch.pages.forEach(p => { slugToChapter[p.slug] = ch.title; });
+});
+
+// ── XP / Achievement helpers ───────────────────────────────────────────────
+function computeXP(pagesProgress, pages) {
+  const done = Object.keys(pagesProgress || {}).filter(slug => {
+    const steps = (pages && pages[slug] && pages[slug].steps) || [];
+    if (!steps.length) return false;
+    const lastName = steps[steps.length - 1].name;
+    return pagesProgress[slug] && pagesProgress[slug].step_name === lastName;
+  });
+  const practice = practiceStats();
+  return {doneSlugs: done, xp: done.length * 20 + practice.xp, practice};
+}
+
+function computeLevel(xp) {
+  return Math.floor(Math.sqrt(xp / 40)) + 1;
+}
+
+function xpForNextLevel(level) {
+  return (level) * (level) * 40;
+}
+
+function touchedChapters(pagesProgress) {
+  const touched = new Set();
+  Object.keys(pagesProgress || {}).forEach(slug => {
+    if (slugToChapter[slug]) touched.add(slugToChapter[slug]);
+  });
+  return touched;
+}
+
+function completedChapters(doneSlugs) {
+  const chapterPageSets = {};
+  chapters.forEach(ch => {
+    chapterPageSets[ch.title] = new Set(ch.pages.map(p => p.slug));
+  });
+  const doneSet = new Set(doneSlugs);
+  return Object.keys(chapterPageSets).filter(title =>
+    [...chapterPageSets[title]].every(s => doneSet.has(s))
+  );
+}
+
+// Conquistas. rarity ∈ comum|raro|epico|lendario. progress(ctx) -> {cur,max} (barra nas travadas).
+const BADGES = [
+  {id: "first_page", icon: "🐍", name: "Primeiro programa", desc: "Concluiu ao menos 1 página", rarity: "comum",
+   check: c => c.doneSlugs.length >= 1},
+  {id: "marathon", icon: "🏃", name: "Maratona", desc: "Concluiu 5 páginas", rarity: "comum",
+   check: c => c.doneSlugs.length >= 5, progress: c => ({cur: c.doneSlugs.length, max: 5})},
+  {id: "explorer", icon: "🗺️", name: "Explorador", desc: "Tocou em 3 capítulos", rarity: "comum",
+   check: c => c.touched >= 3, progress: c => ({cur: c.touched, max: 3})},
+  {id: "first_chapter", icon: "📖", name: "Primeiro capítulo", desc: "Concluiu um capítulo inteiro", rarity: "raro",
+   check: c => c.chaptersDone >= 1},
+  {id: "halfway", icon: "⚡", name: "Na metade", desc: "50% do curso concluído", rarity: "raro",
+   check: c => c.pct >= 50, progress: c => ({cur: c.pct, max: 50})},
+  {id: "chapter_master", icon: "📚", name: "Mestre dos capítulos", desc: "Concluiu TODOS os capítulos", rarity: "epico",
+   check: c => c.totalChapters > 0 && c.chaptersDone >= c.totalChapters, progress: c => ({cur: c.chaptersDone, max: c.totalChapters})},
+  {id: "pythonista", icon: "🏆", name: "Pythonista", desc: "100% do curso concluído", rarity: "lendario",
+   check: c => c.pct >= 100, progress: c => ({cur: c.pct, max: 100})},
+  {id: "practitioner", icon: "🏋️", name: "Praticante", desc: "5 exercícios de prática", rarity: "comum",
+   check: c => c.practice.count >= 5, progress: c => ({cur: c.practice.count, max: 5})},
+  {id: "forger", icon: "🔨", name: "Forjador", desc: "15 exercícios de prática", rarity: "raro",
+   check: c => c.practice.count >= 15, progress: c => ({cur: c.practice.count, max: 15})},
+  {id: "bughunter", icon: "🧪", name: "Caçador de bugs", desc: "Matou todos os bugs de um teste", rarity: "raro",
+   check: c => c.practice.wroteTest},
+  {id: "qa_mind", icon: "🔬", name: "Mente de QA", desc: "30 exercícios de prática", rarity: "epico",
+   check: c => c.practice.count >= 30, progress: c => ({cur: c.practice.count, max: 30})},
+  {id: "xp500", icon: "💎", name: "Pedra preciosa", desc: "Acumulou 500 XP", rarity: "raro",
+   check: c => c.xp >= 500, progress: c => ({cur: c.xp, max: 500})},
+  {id: "level5", icon: "⭐", name: "Nível 5", desc: "Chegou ao nível 5", rarity: "raro",
+   check: c => c.level >= 5, progress: c => ({cur: c.level, max: 5})},
+  {id: "level10", icon: "🌟", name: "Nível 10", desc: "Chegou ao nível 10", rarity: "epico",
+   check: c => c.level >= 10, progress: c => ({cur: c.level, max: 10})},
+  {id: "streak3", icon: "🔥", name: "Em chamas", desc: "3 dias seguidos praticando", rarity: "comum",
+   check: c => c.streak.count >= 3, progress: c => ({cur: c.streak.count, max: 3})},
+  {id: "streak7", icon: "🔥", name: "Semana cheia", desc: "7 dias seguidos praticando", rarity: "raro",
+   check: c => c.streak.count >= 7, progress: c => ({cur: c.streak.count, max: 7})},
+  {id: "streak30", icon: "🔥", name: "Inabalável", desc: "30 dias seguidos praticando", rarity: "lendario",
+   check: c => c.streak.count >= 30, progress: c => ({cur: c.streak.count, max: 30})},
+];
+
+// ── XP Pill + Achievements popup ──────────────────────────────────────────
+const AchievementsPopup = ({user, pages}) => {
+  const {doneSlugs, xp, practice} = computeXP(user.pagesProgress, pages);
+  const level = computeLevel(xp);
+  const nextLevelXP = xpForNextLevel(level);
+  const prevLevelXP = xpForNextLevel(level - 1);
+  const barPct = nextLevelXP > prevLevelXP
+    ? Math.round(100 * (xp - prevLevelXP) / (nextLevelXP - prevLevelXP))
+    : 100;
+  const total = Object.keys(pages || {}).filter(s => s !== "loading_placeholder").length;
+  const pct = total ? Math.round(100 * doneSlugs.length / total) : 0;
+  const streak = getStreak();
+  const ctx = {
+    doneSlugs, pagesProgress: user.pagesProgress, pct, practice, xp, level, streak,
+    touched: touchedChapters(user.pagesProgress).size,
+    chaptersDone: completedChapters(doneSlugs).length,
+    totalChapters: chapters.length,
+  };
+  const unlockedCount = BADGES.filter(b => b.check(ctx)).length;
+
+  return (
+    <Popup
+      nested
+      trigger={
+        <button className="nav-item nav-link xp-pill" title="XP e Conquistas">
+          <span className="xp-icon">⚡</span>
+          <span className="xp-label">Nível {level} · {xp} XP</span>
+          <span className="xp-bar-wrap">
+            <span className="xp-bar-fill" style={{width: barPct + "%"}}/>
+          </span>
+        </button>
+      }
+    >
+      {close => (
+        <div className="achievements-popup">
+          <div className="achievements-head">
+            <span>🏆 Conquistas <span className="ach-count">{unlockedCount}/{BADGES.length}</span></span>
+            <button className="tutor-close" onClick={close}>×</button>
+          </div>
+          <div className="achievements-xp-summary">
+            <span className="achievements-level">Nível {level}</span>
+            <span className="achievements-xp-text">
+              {xp} XP · {doneSlugs.length}/{total} páginas
+              {streak.count > 0 ? " · 🔥 " + streak.count + (streak.count === 1 ? " dia" : " dias") : ""}
+            </span>
+          </div>
+          <div className="achievements-grid">
+            {BADGES.map(badge => {
+              const unlocked = badge.check(ctx);
+              const pr = !unlocked && badge.progress ? badge.progress(ctx) : null;
+              return (
+                <div key={badge.id}
+                     className={"badge-card r-" + (badge.rarity || "comum") + " " + (unlocked ? "unlocked" : "locked")}>
+                  <div className="badge-icon">{unlocked ? badge.icon : "🔒"}</div>
+                  <div className="badge-name">{badge.name}</div>
+                  <div className="badge-desc">{badge.desc}</div>
+                  {pr &&
+                    <div className="badge-progress">
+                      <span className="badge-progress-fill"
+                            style={{width: Math.min(100, Math.round(100 * pr.cur / pr.max)) + "%"}}/>
+                    </div>}
+                  {pr && <div className="badge-progress-text">{Math.min(pr.cur, pr.max)}/{pr.max}</div>}
+                  {unlocked && <div className="badge-rarity">{badge.rarity || "comum"}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </Popup>
+  );
+};
+
+// ── "Aprenda mais" panel (per-chapter resources from media_br.json) ────────
+// Media_br keys use the chapter title in PT-BR. Map them via a normalised key.
+const mediaKeyMap = {};
+Object.keys(mediaBr).forEach(k => {
+  if (k !== "_meta") mediaKeyMap[k.normalize("NFC")] = k;
+});
+
+function getMediaForChapter(chapterTitle) {
+  if (!chapterTitle) return null;
+  const key = mediaKeyMap[chapterTitle.normalize("NFC")];
+  return key ? mediaBr[key] : null;
+}
+
+const LearnMorePanel = ({pageSlug}) => {
+  const [open, setOpen] = React.useState(false);
+  const chapterTitle = pageSlug ? slugToChapter[pageSlug] : null;
+  const media = getMediaForChapter(chapterTitle);
+  if (!media) return null;
+
+  return (
+    <div className="learn-more-panel">
+      <button
+        className="learn-more-trigger"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <span>📚 Aprenda mais</span>
+        <span className="learn-more-arrow">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div className="learn-more-body">
+          {media.video && (
+            <div className="learn-more-section">
+              <div className="learn-more-section-title">📺 Vídeo</div>
+              <a href={media.video.url} target="_blank" rel="noopener noreferrer"
+                 className="learn-more-link">
+                {media.video.label}
+              </a>
+            </div>
+          )}
+          {media.sources && media.sources.length > 0 && (
+            <div className="learn-more-section">
+              <div className="learn-more-section-title">📖 Fontes</div>
+              {media.sources.map((s, i) => (
+                <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
+                   className="learn-more-link">
+                  {s.label}
+                </a>
+              ))}
+            </div>
+          )}
+          {media.mini_project && (
+            <div className="learn-more-section learn-more-project">
+              <div className="learn-more-section-title">🧩 Mini-projeto</div>
+              <div className="learn-more-project-title">{media.mini_project.title}</div>
+              <div className="learn-more-project-goal">{media.mini_project.goal}</div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const EditorButtons = (
   {
@@ -441,6 +662,8 @@ const CourseText = (
         {terms.next} →
       </button>}
     </div>
+    <LearnMorePanel pageSlug={page.slug}/>
+    <PracticePanel chapterTitle={page.slug ? slugToChapter[page.slug] : null}/>
     <br/>
     {
       user.developerMode && <StepButtons/>
@@ -535,7 +758,55 @@ const TutorPanel = () => {
   </>;
 };
 
+function FocusButton() {
+  const [on, setOn] = React.useState(false);
+
+  // Modo foco = classe `focus-mode` no body + estado `on`, SEMPRE setados juntos
+  // na mesma função (sem listener async que possa dessincronizar). Fullscreen é
+  // best-effort e NÃO controla o estado do foco.
+  const setMode = React.useCallback((next) => {
+    setOn(next);
+    document.body.classList.toggle("focus-mode", next);
+    try {
+      const el = document.documentElement;
+      if (next && !document.fullscreenElement) {
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (req) { const p = req.call(el); if (p && p.catch) p.catch(() => {}); }
+      } else if (!next && document.fullscreenElement) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exit) { const p = exit.call(document); if (p && p.catch) p.catch(() => {}); }
+      }
+    } catch (e) { /* fullscreen bloqueado: o modo foco (classe) continua valendo */ }
+  }, []);
+
+  React.useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape" && document.body.classList.contains("focus-mode")) setMode(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.classList.remove("focus-mode"); // nunca deixa preso no foco
+    };
+  }, [setMode]);
+
+  return (
+    <button className={"nav-item nav-link focus-toggle" + (on ? " active" : "")}
+            title="Modo foco — esconde distrações pra você focar na aula (Esc sai)"
+            aria-pressed={on}
+            onClick={() => setMode(!on)}>
+      <FontAwesomeIcon icon={on ? faCompress : faExpand}/> {on ? "Sair do foco" : "Foco"}
+    </button>
+  );
+}
+
 function NavBar({user}) {
+  const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+  React.useEffect(() => {
+    const h = () => forceUpdate();
+    window.addEventListener("practice-updated", h);
+    return () => window.removeEventListener("practice-updated", h);
+  }, []);
   const {done, total} = courseCompletion(bookState.pages, user.pagesProgress);
   const pct = total ? Math.round(100 * done / total) : 0;
   return <nav className="navbar navbar-expand-lg navbar-dark">
@@ -549,6 +820,14 @@ function NavBar({user}) {
       <FontAwesomeIcon icon={faListOl}/> {terms.table_of_contents}
     </a>
     <TutorPanel/>
+    <FocusButton/>
+    {(() => {
+      const s = getStreak();
+      return s.count > 0
+        ? <span className="nav-item streak-chip" title={"Sequência de prática: " + s.count + " dias (recorde " + (s.best || s.count) + ")"}>🔥 {s.count}</span>
+        : null;
+    })()}
+    <AchievementsPopup user={user} pages={bookState.pages}/>
     <SettingsPopup user={user}/>
     <span className="nav-item course-progress" title={`${done}/${total} páginas`}>
       <span className="course-progress-bar">

@@ -54,6 +54,21 @@ export async function saveCodeToProject(slug, code) {
   return r.json();
 }
 
+// Progresso do painel "Pratique": espelha cada exercicio concluido no SQLite.
+// Best-effort; a fonte de verdade local e o localStorage (PracticePanel).
+export async function savePracticeProgress(exerciseId, xp, mode) {
+  try {
+    const r = await fetch("/api/practice-progress", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({exercise_id: exerciseId, xp: xp, mode: mode}),
+    });
+    return await r.json();
+  } catch (e) {
+    return {ok: false};
+  }
+}
+
 // Tutor IA por fase: backend roda agy (gratis) ou claude via CLI, seguindo o CLAUDE.md.
 export async function askTutor(tutor, context, question, code) {
   const r = await fetch("/api/tutor", {

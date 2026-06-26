@@ -69,6 +69,32 @@ class ServerProgressTest(unittest.TestCase):
         self.assertIn("y = 2", prompt)         # codigo do aluno
         self.assertIn("o que e isso?", prompt) # pergunta
 
+    def test_practice_progress_default_empty(self):
+        got = server.get_practice_progress()
+        self.assertEqual(got["count"], 0)
+        self.assertEqual(got["xp"], 0)
+        self.assertEqual(got["items"], [])
+
+    def test_practice_progress_roundtrip_and_upsert(self):
+        res, code = server.save_practice_progress("functions-n1-greet", 10, "write_code")
+        self.assertEqual(code, 200)
+        self.assertTrue(res["ok"])
+        got = server.get_practice_progress()
+        self.assertEqual(got["count"], 1)
+        self.assertEqual(got["xp"], 10)
+        self.assertEqual(got["items"][0]["exercise_id"], "functions-n1-greet")
+        # mesmo id de novo -> upsert (nao duplica, atualiza xp)
+        server.save_practice_progress("functions-n1-greet", 30, "write_test")
+        got = server.get_practice_progress()
+        self.assertEqual(got["count"], 1)
+        self.assertEqual(got["xp"], 30)
+        self.assertEqual(got["items"][0]["mode"], "write_test")
+
+    def test_practice_progress_missing_id_rejected(self):
+        res, code = server.save_practice_progress("", 10, "write_code")
+        self.assertEqual(code, 400)
+        self.assertFalse(res["ok"])
+
 
 if __name__ == "__main__":
     unittest.main()

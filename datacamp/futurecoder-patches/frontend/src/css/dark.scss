@@ -313,4 +313,305 @@ html, body, #root, .book, .app, .page, #app, .container, .container-fluid {
 .settings-desc { color: var(--muted); font-size: 12px; padding: 4px 12px 10px; margin: 0; }
 .settings-popup .clear-progress-btn { margin: 4px 12px 0; }
 
+/* ============================================================
+   POLISH v2 (refactor 2026-06-25): legibilidade + ritmo visual
+   So tipografia/espacamento/estados — nao mexe em layout/logica.
+   ============================================================ */
+
+/* Legibilidade da aula: linha mais respirada, medida de leitura confortavel */
+.markdown-body {
+  font-size: 15.5px !important;
+  line-height: 1.78 !important;
+  max-width: 760px;
+}
+.markdown-body > p { margin: 0 0 14px; }
+.markdown-body h1 { font-size: 30px !important; font-weight: 800 !important; margin: 4px 0 18px !important; letter-spacing: -.3px; }
+.markdown-body h2 { font-size: 22px !important; margin: 28px 0 10px !important; }
+.markdown-body h3 { font-size: 18px !important; margin: 22px 0 8px !important; }
+.markdown-body ul, .markdown-body ol { line-height: 1.7; }
+.markdown-body code, .markdown-body tt { padding: 1px 6px !important; border-radius: 5px !important; font-size: .92em !important; }
+
+/* Blocos de codigo das aulas: mais ar, borda sutil, canto arredondado */
+.markdown-body pre {
+  background-color: #0b0f14 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  padding: 14px 16px !important;
+  margin: 14px 0 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+/* Collapsibles (Requisitos / Avaliacao / Dicas): cartoes separados e clicaveis */
+.Collapsible {
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  margin-bottom: 10px !important;
+  overflow: hidden;
+}
+.Collapsible__trigger {
+  display: block; padding: 12px 16px !important;
+  font-weight: 600 !important; cursor: pointer; transition: background-color .12s;
+}
+.Collapsible__trigger:hover { background-color: var(--border) !important; }
+.Collapsible .Collapsible__contentInner { padding: 4px 16px 14px !important; }
+
+/* Botoes de navegacao: um pouco mais de presenca */
+.btn { border-radius: 8px !important; }
+.btn-primary, .btn-success { font-weight: 600 !important; }
+
+/* Foco acessivel (teclado) consistente com o tema */
+a:focus-visible, button:focus-visible, .btn:focus-visible {
+  outline: 2px solid var(--accent) !important; outline-offset: 2px;
+}
+
 /* NAO mexer no editor de codigo e terminal: ja sao escuros (Ace/Pyodide). */
+
+/* ============================================================
+   FEATURE: XP Pill + Achievements popup
+   ============================================================ */
+.xp-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text) !important; padding: 4px 8px; border-radius: 20px;
+  transition: background-color .12s;
+}
+.xp-pill:hover { background-color: var(--surface-2); }
+.xp-icon { font-size: 14px; }
+.xp-label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.xp-bar-wrap {
+  width: 48px; height: 5px; background: var(--surface-2);
+  border-radius: 3px; overflow: hidden; flex-shrink: 0;
+}
+.xp-bar-fill { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
+
+.achievements-popup {
+  width: 360px; max-width: 92vw; padding: 4px 4px 12px;
+}
+.achievements-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; color: #fff; padding: 4px 8px 10px;
+  border-bottom: 1px solid var(--border); margin-bottom: 10px;
+}
+.achievements-xp-summary {
+  display: flex; align-items: baseline; gap: 10px; padding: 0 10px 10px;
+}
+.achievements-level {
+  font-size: 20px; font-weight: 800; color: var(--accent);
+}
+.achievements-xp-text { font-size: 13px; color: var(--muted); }
+
+.achievements-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 8px;
+}
+.badge-card {
+  border-radius: 10px; border: 1px solid var(--border);
+  padding: 10px 12px; text-align: center; transition: border-color .15s;
+}
+.badge-card.unlocked { border-color: var(--accent); background: rgba(124, 92, 255, .08); }
+.badge-card.locked { opacity: .55; }
+.badge-icon { font-size: 26px; margin-bottom: 4px; }
+.badge-name { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.badge-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+/* ============================================================
+   FEATURE: "Aprenda mais" panel (per-chapter resources)
+   ============================================================ */
+.learn-more-panel {
+  margin-top: 20px; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+.learn-more-trigger {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; padding: 10px 14px; cursor: pointer;
+  background: var(--surface); border: none; color: var(--text);
+  font-size: 14px; font-weight: 600; transition: background-color .12s;
+}
+.learn-more-trigger:hover { background: var(--surface-2); }
+.learn-more-arrow { font-size: 11px; color: var(--muted); }
+.learn-more-body {
+  background: var(--surface); padding: 12px 14px 14px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.learn-more-section { display: flex; flex-direction: column; gap: 4px; }
+.learn-more-section-title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--muted); font-weight: 700; margin-bottom: 2px;
+}
+.learn-more-link {
+  font-size: 14px; color: var(--accent) !important; text-decoration: none !important;
+  display: inline-block; padding: 2px 0;
+}
+.learn-more-link:hover { text-decoration: underline !important; }
+.learn-more-project {
+  background: rgba(124, 92, 255, .07); border-radius: 8px;
+  border: 1px solid rgba(124, 92, 255, .25); padding: 10px 12px;
+}
+.learn-more-project-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.learn-more-project-goal { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+/* ============================================================
+   FIX UI (2026-06-25): navbar apertada/desalinhada
+   - centraliza verticalmente TODOS os itens da navbar
+   - esconde a barra "% concluido" redundante (o XP pill ja indica progresso)
+     que estourava a navbar estreita (painel esquerdo ~828px)
+   - XP pill vira um chip alinhado, encostado a direita
+   ============================================================ */
+.navbar, .navbar-nav, .navbar > .container, .navbar > .container-fluid {
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+}
+.course-progress { display: none !important; }
+.xp-pill {
+  align-self: center !important;
+  margin-left: auto !important;          /* encosta o pill a direita (onde estava o progresso) */
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 20px !important;
+  padding: 5px 12px !important;
+  line-height: 1 !important;
+}
+.xp-pill:hover { border-color: var(--accent) !important; background: var(--surface-2) !important; }
+/* Config vem depois do pill no DOM: garante que fique a direita do pill, alinhado */
+.xp-pill ~ .nav-item { align-self: center !important; }
+
+/* FIX (2026-06-25): o botao "Config" (e qualquer <button class="nav-link"> "pelado")
+   mostrava o fundo padrao do SO (cinza claro ~rgb(239,239,239)) -> bg branco na navbar.
+   Deixa transparente como os demais itens. Exclui .xp-pill (chip proposital com fundo). */
+.navbar button.nav-link:not(.xp-pill),
+header button.nav-link:not(.xp-pill) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--text) !important;
+}
+
+/* POLISH (2026-06-25): XP vira um elemento de gamificacao INTENCIONAL, nao um
+   chip generico. Icone ⚡ dourado, nivel em destaque, barra de XP visivel. */
+.xp-pill {
+  gap: 8px !important;
+  padding: 5px 12px !important;
+}
+.xp-icon { font-size: 15px !important; color: var(--gold) !important; line-height: 1; }
+.xp-label { font-size: 12.5px !important; font-weight: 600 !important; color: var(--text) !important; }
+.xp-label b, .xp-label strong { color: #fff !important; }
+/* barra de progresso de nivel: visivel, trilho escuro, preenchimento violeta */
+.xp-bar-wrap {
+  width: 54px !important; height: 6px !important;
+  background: var(--bg) !important; border: 1px solid var(--border) !important;
+  border-radius: 4px !important; overflow: hidden; flex-shrink: 0;
+}
+.xp-bar-fill { background: linear-gradient(90deg, var(--accent), var(--accent2)) !important; }
+
+/* ===== Painel "Pratique" (exercicios de 3 niveis) ===== */
+.practice-panel { margin-top: 16px; }
+.practice-trigger {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  background: var(--card, #161922); color: var(--text); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.practice-trigger:hover { border-color: var(--accent); }
+.practice-count {
+  margin-left: 8px; font-size: 12px; font-weight: 600; color: var(--accent);
+  background: rgba(124, 92, 255, .14); border-radius: 20px; padding: 1px 9px;
+}
+.practice-arrow { color: var(--muted, #8b93a7); font-size: 12px; }
+.practice-body { margin-top: 10px; display: flex; flex-direction: column; gap: 14px; }
+.practice-intro { font-size: 13px; color: var(--muted, #8b93a7); font-style: italic; }
+.practice-card {
+  background: var(--card, #161922); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+}
+.practice-card.done { border-color: #2ecc71; }
+.practice-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.practice-level {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; white-space: nowrap;
+  background: rgba(124, 92, 255, .16); color: var(--accent);
+}
+.practice-level.lvl-1 { background: rgba(46, 204, 113, .16); color: #2ecc71; }
+.practice-level.lvl-2 { background: rgba(241, 196, 15, .16); color: var(--gold, #f1c40f); }
+.practice-level.lvl-3 { background: rgba(124, 92, 255, .16); color: var(--accent); }
+.practice-card-title { font-weight: 700; flex: 1; color: var(--text); }
+.practice-card-xp { font-size: 12px; font-weight: 700; color: var(--gold, #f1c40f); }
+.practice-prompt { font-size: 14px; line-height: 1.6; color: var(--text); white-space: pre-wrap; margin-bottom: 10px; }
+.practice-editor {
+  width: 100%; background: #0d0f14; color: #e6e6e6; border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; font-family: monospace; font-size: 13.5px;
+  line-height: 1.5; resize: vertical; tab-size: 4;
+}
+.practice-editor:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.practice-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.practice-hint-btn, .practice-reset {
+  background: transparent !important; color: var(--text) !important;
+  border: 1px solid var(--border) !important;
+}
+.practice-hint-btn:hover, .practice-reset:hover { border-color: var(--accent) !important; }
+.practice-hints { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.practice-hint { font-size: 13px; color: var(--text); background: rgba(241,196,15,.07); border-left: 3px solid var(--gold, #f1c40f); padding: 6px 10px; border-radius: 4px; }
+.practice-hint-n { color: var(--gold, #f1c40f); font-weight: 700; margin-right: 4px; }
+.practice-hint code { background: transparent; color: #66d9ef; white-space: pre-wrap; }
+.practice-feedback { margin-top: 12px; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; }
+.practice-feedback.ok { background: rgba(46,204,113,.10); border: 1px solid rgba(46,204,113,.4); }
+.practice-feedback.fail { background: rgba(231,76,60,.08); border: 1px solid rgba(231,76,60,.35); }
+.practice-feedback.err { background: rgba(241,196,15,.10); border: 1px solid rgba(241,196,15,.4); color: var(--gold, #f1c40f); }
+.practice-feedback-head { font-weight: 700; margin-bottom: 6px; }
+.practice-cases { margin: 0; padding-left: 18px; }
+.practice-cases li { margin: 3px 0; line-height: 1.5; }
+.practice-cases li.pass { color: #b8f0cf; }
+.practice-cases li.fail { color: #f3b6b0; }
+.practice-cases code { background: #0d0f14; color: #66d9ef; padding: 1px 5px; border-radius: 4px; }
+
+/* ===== Modo Foco (esconde distracoes, foca na aula) ===== */
+.focus-toggle { background: transparent !important; border: 0 !important; color: var(--text) !important; }
+.focus-toggle.active { color: var(--accent) !important; font-weight: 700; }
+body.focus-mode .ide,
+body.focus-mode .editor-buttons,
+body.focus-mode .full-ide-button,
+body.focus-mode .save-code-btn { display: none !important; }
+body.focus-mode .book-text {
+  max-width: 880px; margin: 0 auto; padding: 8px 24px 80px; font-size: 1.02em;
+}
+/* navbar discreta mas SEMPRE acessivel (nao some, volta no hover/foco) */
+body.focus-mode .navbar { opacity: .35; transition: opacity .25s ease; }
+body.focus-mode .navbar:hover, body.focus-mode .navbar:focus-within { opacity: 1; }
+body.focus-mode { background: radial-gradient(ellipse at top, rgba(124,92,255,.05), transparent 60%); }
+/* dica fixa pra sair do foco */
+body.focus-mode::after {
+  content: "modo foco · Esc para sair";
+  position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; color: var(--muted, #8b93a7); background: var(--card, #161922);
+  border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px;
+  opacity: .65; pointer-events: none; z-index: 50;
+}
+
+/* ===== Gamificacao: streak, raridade, progresso ===== */
+.streak-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12.5px; font-weight: 700; color: #ff8a3d;
+  background: rgba(255,138,61,.12); border: 1px solid rgba(255,138,61,.35);
+  border-radius: 20px; padding: 3px 10px; margin: 0 2px;
+}
+.ach-count { font-size: 12px; font-weight: 600; color: var(--accent); margin-left: 6px; }
+.practice-feedback.info { background: rgba(124,92,255,.10); border: 1px solid rgba(124,92,255,.35); color: var(--text); }
+
+.badge-card { position: relative; transition: transform .15s ease; }
+.badge-card.unlocked:hover { transform: translateY(-2px); }
+.badge-card.locked { opacity: .55; }
+.badge-card.unlocked.r-comum    { border-color: #5b6472; }
+.badge-card.unlocked.r-raro     { border-color: #3da5ff; box-shadow: 0 0 10px rgba(61,165,255,.25); }
+.badge-card.unlocked.r-epico    { border-color: #b06bff; box-shadow: 0 0 12px rgba(176,107,255,.32); }
+.badge-card.unlocked.r-lendario { border-color: var(--gold,#f1c40f); box-shadow: 0 0 16px rgba(241,196,15,.40); }
+.badge-rarity {
+  margin-top: 4px; font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+  font-weight: 700; opacity: .8;
+}
+.badge-card.r-comum .badge-rarity { color: #9aa3b2; }
+.badge-card.r-raro .badge-rarity { color: #3da5ff; }
+.badge-card.r-epico .badge-rarity { color: #b06bff; }
+.badge-card.r-lendario .badge-rarity { color: var(--gold,#f1c40f); }
+.badge-progress {
+  margin-top: 6px; height: 5px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden;
+}
+.badge-progress-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.badge-progress-text { font-size: 10px; color: var(--muted, #8b93a7); margin-top: 2px; }

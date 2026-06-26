@@ -85,7 +85,10 @@ htmlcov/
 # Privado, nunca commitar
 CLAUDE.md
 
-# Bancos locais / logs de exercicio
+# Bancos locais / logs de exercicio (qualquer SQLite, em qualquer pasta)
+*.db
+*.sqlite
+*.sqlite3
 ruvector.db
 age_log.txt
 datacamp/progress.db
@@ -105,6 +108,11 @@ datacamp/other_variables_types.py
 *.png
 .playwright-mcp/
 docs/superpowers/
+datacamp/docs/superpowers/
+
+# Ferramentas locais (indices, editor)
+.codegraph/
+.cursor/
 
 # Artefatos de orquestracao local
 .swarm/
