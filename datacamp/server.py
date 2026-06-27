@@ -20,6 +20,7 @@ import sqlite3
 import subprocess
 import http.server
 import socketserver
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from curriculum import TRACK, CHAPTERS
@@ -28,6 +29,17 @@ try:
     from course_data import COURSE, ATTRIBUTION
 except ImportError:  # curso ainda não gerado (rodar: python3 build_course.py)
     COURSE, ATTRIBUTION = [], ""
+
+try:
+    from athena import orchestrator as _orchestrator  # camada de agentes (Athena)
+    from athena import pedagogy as _pedagogy
+    from athena import librarian as _librarian
+    from athena import badges as _badges
+except ImportError:  # pacote athena ausente — degrada sem quebrar o dashboard
+    _orchestrator = None
+    _pedagogy = None
+    _librarian = None
+    _badges = None
 
 HERE = Path(__file__).parent
 DB_PATH = HERE / "progress.db"
@@ -171,6 +183,85 @@ def init_db():
         );
         """
     )
+    # --- Athena AI Learning OS (SDD-ai-learning-os.md §A3) — tabelas aditivas ---
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS learner (
+            id          INTEGER PRIMARY KEY CHECK (id = 1),
+            name        TEXT DEFAULT '',
+            level       INTEGER DEFAULT 0,
+            xp          INTEGER DEFAULT 0,
+            streak_days INTEGER DEFAULT 0,
+            last_active TEXT DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS mastery (
+            concept     TEXT PRIMARY KEY,
+            strength    REAL DEFAULT 0,
+            last_seen   TEXT DEFAULT '',
+            next_review TEXT DEFAULT '',
+            attempts    INTEGER DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS events (
+            id      INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts      TEXT DEFAULT (datetime('now','localtime')),
+            kind    TEXT DEFAULT '',
+            ref     TEXT DEFAULT '',
+            payload TEXT DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS agent_runs (
+            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts       TEXT DEFAULT (datetime('now','localtime')),
+            agent    TEXT DEFAULT '',
+            task     TEXT DEFAULT '',
+            provider TEXT DEFAULT '',
+            status   TEXT DEFAULT '',
+            tokens   INTEGER DEFAULT 0,
+            notes    TEXT DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS content_queue (
+            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+            chapter  TEXT DEFAULT '',
+            kind     TEXT DEFAULT '',
+            state    TEXT DEFAULT 'todo',
+            priority INTEGER DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS memory (
+            id    INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts    TEXT DEFAULT (datetime('now','localtime')),
+            kind  TEXT DEFAULT '',          -- decision | session | content
+            title TEXT DEFAULT '',
+            body  TEXT DEFAULT '',
+            tags  TEXT DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS user_badges (
+            user_id     INTEGER DEFAULT 1,
+            badge_id    TEXT,
+            unlocked_at TEXT DEFAULT (datetime('now','localtime')),
+            PRIMARY KEY (user_id, badge_id)
+        );
+        """
+    )
+    conn.execute("INSERT OR IGNORE INTO learner (id) VALUES (1)")
+    # Migração ADITIVA: coluna learner.mode ("python"|"qa") — modo de aprendizado. CREATE TABLE
+    # IF NOT EXISTS não altera tabela já existente, então adicionamos a coluna sob demanda.
+    _cols = {r[1] for r in conn.execute("PRAGMA table_info(learner)")}
+    if "mode" not in _cols:
+        conn.execute("ALTER TABLE learner ADD COLUMN mode TEXT DEFAULT 'python'")
+    # Migração ADITIVA (GAP-5): coluna practice_progress.code — guarda o último código que
+    # PASSOU em cada exercício da prática, pra sobreviver à limpeza do localStorage (checkpoint).
+    _pcols = {r[1] for r in conn.execute("PRAGMA table_info(practice_progress)")}
+    if "code" not in _pcols:
+        conn.execute("ALTER TABLE practice_progress ADD COLUMN code TEXT DEFAULT ''")
+    # Seed do backlog do Orchestrator no content_queue — uma vez, só se a fila estiver vazia
+    # (o estado de execução vive aqui; o backlog "fonte" é o athena.orchestrator).
+    if _orchestrator is not None:
+        empty = conn.execute("SELECT COUNT(*) c FROM content_queue").fetchone()[0] == 0
+        if empty:
+            conn.executemany(
+                "INSERT INTO content_queue (chapter, kind, state, priority) VALUES (?,?,?,?)",
+                [(i["chapter"], i["kind"], i["state"], i["priority"])
+                 for i in _orchestrator.MVP_BACKLOG],
+            )
     conn.commit()
     conn.close()
 
@@ -253,6 +344,8 @@ def get_course_progress():
 
 def save_course_progress(page_slug, pages_progress, editor_content, pages_done, pages_total):
     conn = db()
+    prev = conn.execute("SELECT pages_done FROM course_progress WHERE id=1").fetchone()
+    prev_done = (prev["pages_done"] if prev else 0) or 0
     conn.execute(
         """UPDATE course_progress
            SET page_slug=?, pages_progress=?, editor_content=?,
@@ -263,6 +356,11 @@ def save_course_progress(page_slug, pages_progress, editor_content, pages_done, 
     )
     conn.commit()
     conn.close()
+    # evento de página só quando o nº de páginas concluídas AUMENTA (anti-spam do debounce).
+    if int(pages_done or 0) > int(prev_done):
+        log_event("page", ref=str(page_slug or ""), source="course",
+                  payload={"pages_done": int(pages_done or 0), "pages_total": int(pages_total or 0)})
+        evaluate_badges()  # 1ª página pode desbloquear first_step
     return {"ok": True}
 
 
@@ -277,31 +375,373 @@ def save_code(slug, code):
     return {"ok": True, "path": f"saved_code/{safe}.py"}, 200
 
 
-def save_practice_progress(exercise_id, xp, mode):
-    """Espelha a conclusao de um exercicio do painel Pratique no SQLite."""
+def save_practice_progress(exercise_id, xp, mode, code=""):
+    """Espelha a conclusao de um exercicio do painel Pratique no SQLite.
+
+    Na 1a conclusao de cada exercicio, sobe o dominio do conceito correspondente (Mastery
+    Tracker). Idempotente por exercise_id: refazer o mesmo exercicio NAO refarma o dominio.
+    `code` (GAP-5): guarda o codigo que passou — atualizado a cada conclusao (checkpoint que
+    sobrevive a limpeza do localStorage). `code` e opcional p/ nao quebrar chamadas antigas.
+    """
     if not exercise_id:
         return {"ok": False, "error": "sem exercise_id"}, 400
     conn = db()
-    conn.execute(
-        """INSERT INTO practice_progress (exercise_id, xp, mode, updated_at)
-           VALUES (?,?,?,datetime('now','localtime'))
-           ON CONFLICT(exercise_id) DO UPDATE SET
-               xp=excluded.xp, mode=excluded.mode, updated_at=datetime('now','localtime')""",
-        (str(exercise_id), int(xp or 0), str(mode or "")),
-    )
-    conn.commit()
-    conn.close()
-    return {"ok": True}, 200
+    try:
+        # BEGIN IMMEDIATE serializa submits concorrentes do MESMO exercício: só o 1º
+        # vê already=False e sobe mastery (evita duplo-bump/evento em double-click ou rede lenta).
+        conn.execute("BEGIN IMMEDIATE")
+        already = conn.execute(
+            "SELECT 1 FROM practice_progress WHERE exercise_id=?", (str(exercise_id),)
+        ).fetchone() is not None
+        conn.execute(
+            """INSERT INTO practice_progress (exercise_id, xp, mode, code, updated_at)
+               VALUES (?,?,?,?,datetime('now','localtime'))
+               ON CONFLICT(exercise_id) DO UPDATE SET
+                   xp=excluded.xp, mode=excluded.mode,
+                   -- só sobrescreve o checkpoint com código NÃO-vazio: um chamador antigo
+                   -- (3 args, code='') não pode apagar o código já salvo do aluno.
+                   code=CASE WHEN excluded.code != '' THEN excluded.code ELSE practice_progress.code END,
+                   updated_at=datetime('now','localtime')""",
+            (str(exercise_id), int(xp or 0), str(mode or ""), str(code or "")),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    bumped = None
+    if not already:
+        # evento de prática (conta TODA 1ª conclusão, mesmo sem conceito mapeado).
+        log_event("practice", ref=str(exercise_id), source="practice",
+                  payload={"mode": str(mode or ""), "xp": int(xp or 0)})
+        if _pedagogy is not None:
+            concept = _pedagogy.concept_for_exercise(str(exercise_id), str(mode or ""))
+            if concept:
+                record_mastery(concept, True, source="practice")  # 1a conclusao = acerto
+                bumped = concept
+    return {"ok": True, "mastery_bumped": bumped}, 200
 
 
 def get_practice_progress():
     conn = db()
     rows = conn.execute(
-        "SELECT exercise_id, xp, mode, updated_at FROM practice_progress"
+        "SELECT exercise_id, xp, mode, code, updated_at FROM practice_progress"
     ).fetchall()
     conn.close()
     items = [dict(r) for r in rows]
     return {"items": items, "count": len(items), "xp": sum(i["xp"] for i in items)}
+
+
+# ---------------------------------------------------------------------------
+# Athena AI Learning OS — auditoria do /loop (SDD §A3, tabela agent_runs)
+# ---------------------------------------------------------------------------
+def record_agent_run(agent, task, provider, status="ok", tokens=0, notes=""):
+    """Registra uma execucao de agente do /loop. Provider deve seguir o roteamento (SDD §A4)."""
+    if not agent:
+        return {"ok": False, "error": "sem agent"}, 400
+    conn = db()
+    cur = conn.execute(
+        """INSERT INTO agent_runs (agent, task, provider, status, tokens, notes)
+           VALUES (?,?,?,?,?,?)""",
+        (str(agent), str(task or ""), str(provider or ""),
+         str(status or "ok"), int(tokens or 0), str(notes or "")),
+    )
+    run_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return {"ok": True, "id": run_id}, 200
+
+
+def get_agent_runs(limit=50):
+    conn = db()
+    rows = conn.execute(
+        "SELECT id, ts, agent, task, provider, status, tokens, notes "
+        "FROM agent_runs ORDER BY id DESC LIMIT ?",
+        (int(limit),),
+    ).fetchall()
+    conn.close()
+    items = [dict(r) for r in rows]
+    return {"items": items, "count": len(items)}
+
+
+def index_memory(kind, title, body, tags=""):
+    """Indexa uma entrada (decisão/sessão/conteúdo) na memória do Librarian (#13)."""
+    if not (title or body):
+        return {"ok": False, "error": "memória vazia"}, 400
+    conn = db()
+    cur = conn.execute(
+        "INSERT INTO memory (kind, title, body, tags) VALUES (?,?,?,?)",
+        (str(kind or ""), str(title or ""), str(body or ""), str(tags or "")),
+    )
+    mid = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return {"ok": True, "id": mid}, 200
+
+
+def recall_memory(query, limit=5):
+    """Recupera as entradas mais relevantes p/ a query (recall por palavra-chave)."""
+    if _librarian is None:
+        return {"items": [], "count": 0}
+    conn = db()
+    rows = conn.execute("SELECT id, ts, kind, title, body, tags FROM memory").fetchall()
+    conn.close()
+    entries = [dict(r) for r in rows]
+    hits = _librarian.recall(query or "", entries, int(limit))
+    return {"items": hits, "count": len(hits)}
+
+
+def get_plan():
+    """Plano do Orchestrator (SDD §C3): backlog MVP + progresso + próximo item 'todo'."""
+    if _orchestrator is None:
+        return {"backlog": [], "progress": {"done": 0, "total": 0}, "next": {}}
+    return {
+        "backlog": _orchestrator.backlog(),
+        "progress": _orchestrator.progress(),
+        "next": _orchestrator.next_todo(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Events — log append-only de eventos REAIS de aprendizagem (base do badge engine).
+# Reusa a tabela `events (id, ts, kind, ref, payload)` — NÃO altera schema: a origem
+# (`source`) e os detalhes vão no `payload` JSON. Política anti-duplicidade (alto sinal):
+#   • page     → só quando pages_done AUMENTA (não a cada save debounced).
+#   • practice → só na 1ª conclusão de cada exercício (idempotente por exercise_id).
+#   • mastery  → 1 por tentativa REAL (os chamadores já filtram por "1ª vez"); `source`
+#                distingue practice/grade/api. (Um practice 1ª-vez emite practice+mastery:
+#                payloads complementares — practice traz `mode`, mastery traz `strength`.)
+# ---------------------------------------------------------------------------
+def log_event(kind, ref="", payload=None, source=""):
+    """Insere 1 linha append-only em `events`. Best-effort: NUNCA derruba a rota real."""
+    body = dict(payload or {})
+    if source:
+        body["source"] = source
+    try:
+        conn = db()
+        conn.execute(
+            "INSERT INTO events (kind, ref, payload) VALUES (?,?,?)",
+            (str(kind), str(ref or ""), json.dumps(body, ensure_ascii=False)),
+        )
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass  # instrumentação não pode quebrar o fluxo principal
+
+
+def get_events(limit=50):
+    """Últimos eventos (rota de DEBUG /api/events), mais recentes primeiro."""
+    conn = db()
+    rows = conn.execute(
+        "SELECT id, ts, kind, ref, payload FROM events ORDER BY id DESC LIMIT ?",
+        (int(limit),),
+    ).fetchall()
+    conn.close()
+    items = []
+    for r in rows:
+        try:
+            pl = json.loads(r["payload"]) if r["payload"] else {}
+        except Exception:
+            pl = {}
+        items.append({"id": r["id"], "ts": r["ts"], "kind": r["kind"],
+                      "ref": r["ref"], "source": pl.get("source", ""), "payload": pl})
+    return {"items": items, "count": len(items)}
+
+
+# ---------------------------------------------------------------------------
+# Badges (MVP Loop 2) — avaliação persistida ligada a aprendizagem real.
+# Regras puras em athena/badges.py; aqui mora a leitura do estado + persistência
+# (tabela `user_badges`, INSERT idempotente). Aluno único (id=1), como o resto do app.
+# ---------------------------------------------------------------------------
+def _badge_context():
+    """Monta o ctx para badges.evaluate a partir de mastery + course_progress."""
+    rows = _mastery_rows()  # [{concept,label,level,strength,next_review}]
+    strength = {r["concept"]: r["strength"] for r in rows}
+    rows2 = [{"concept": r["concept"], "strength": r["strength"], "level": r["level"],
+              "mastered": r["strength"] >= _pedagogy.MASTERED} for r in rows]
+    conn = db()
+    row = conn.execute("SELECT pages_done FROM course_progress WHERE id=1").fetchone()
+    conn.close()
+    pages_done = (row["pages_done"] if row else 0) or 0
+    return {"rows": rows2, "strength": strength, "pages_done": int(pages_done)}
+
+
+def evaluate_badges():
+    """Avalia as regras e grava em user_badges os novos (INSERT OR IGNORE = idempotente).
+
+    Retorna a lista de ids RECÉM-desbloqueados (para a UI futura celebrar). Best-effort.
+    """
+    if _badges is None or _pedagogy is None:
+        return []
+    try:
+        satisfied = _badges.evaluate(_badge_context())
+    except Exception:
+        return []
+    newly = []
+    conn = db()
+    try:  # try/finally fecha a conexão mesmo em erro (padrão de record_attempt — evita lock)
+        for bid in satisfied:
+            cur = conn.execute(
+                """INSERT OR IGNORE INTO user_badges (user_id, badge_id, unlocked_at)
+                   VALUES (1, ?, datetime('now','localtime'))""",
+                (str(bid),),
+            )
+            if cur.rowcount > 0:
+                newly.append(bid)
+        conn.commit()
+    finally:
+        conn.close()
+    return newly
+
+
+def get_badges():
+    """Estado dos badges do aluno (rota /api/badges) — definições + flag unlocked."""
+    conn = db()
+    rows = conn.execute("SELECT badge_id, unlocked_at FROM user_badges WHERE user_id=1").fetchall()
+    conn.close()
+    unlocked = {r["badge_id"]: r["unlocked_at"] for r in rows}
+    defs = _badges.BADGE_DEFS if _badges else []
+    items = [{
+        "id": b["id"], "name": b["name"], "icon": b["icon"], "track": b["track"],
+        "desc": b.get("desc", ""), "unlocked": b["id"] in unlocked,
+        "unlocked_at": unlocked.get(b["id"], ""),
+    } for b in defs]
+    return {"items": items, "unlocked": len(unlocked), "total": len(items)}
+
+
+# ---------------------------------------------------------------------------
+# Athena — Progress Analyst (#9) + Mastery Tracker (#8): SDD §A2/§B6
+# ---------------------------------------------------------------------------
+def _mastery_map():
+    """{concept_key: strength} a partir da tabela mastery."""
+    conn = db()
+    rows = conn.execute("SELECT concept, strength FROM mastery").fetchall()
+    conn.close()
+    return {r["concept"]: r["strength"] for r in rows}
+
+
+def _mastery_rows():
+    """[{concept,label,level,strength,next_review}] na ordem do currículo (inclui agendamento).
+
+    Mescla a tabela mastery com CONCEPTS para o Progress Analyst decidir entre revisão
+    espaçada vencida e conceito novo.
+    """
+    conn = db()
+    rows = conn.execute("SELECT concept, strength, next_review FROM mastery").fetchall()
+    conn.close()
+    by_key = {r["concept"]: r for r in rows}
+    out = []
+    for c in _pedagogy.CONCEPTS:
+        r = by_key.get(c["key"])
+        out.append({
+            "concept": c["key"], "label": c["label"], "level": c["level"],
+            "strength": r["strength"] if r else 0.0,
+            "next_review": r["next_review"] if r else "",
+        })
+    return out
+
+
+def get_learner():
+    """Perfil do aluno (singleton id=1): inclui o modo de aprendizado ('python'|'qa')."""
+    conn = db()
+    row = conn.execute(
+        "SELECT name, level, xp, streak_days, mode FROM learner WHERE id=1"
+    ).fetchone()
+    conn.close()
+    mode = (row["mode"] if row and "mode" in row.keys() else None) or "python"
+    return {
+        "name": row["name"] if row else "",
+        "level": row["level"] if row else 0,
+        "xp": row["xp"] if row else 0,
+        "streak_days": row["streak_days"] if row else 0,
+        "mode": mode if mode in ("python", "qa") else "python",
+    }
+
+
+def set_learner_mode(mode):
+    """Define o modo de aprendizado. Aceita só 'python'|'qa'; senão devolve erro 400."""
+    valid = getattr(_pedagogy, "VALID_MODES", ("python", "qa")) if _pedagogy else ("python", "qa")
+    if mode not in valid:
+        return {"ok": False, "error": f"modo invalido (use {' ou '.join(valid)})"}, 400
+    conn = db()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        conn.execute("UPDATE learner SET mode=? WHERE id=1", (mode,))
+        conn.commit()
+    finally:
+        conn.close()
+    log_event("learner_mode", ref=mode, source="learner")
+    return {"ok": True, "mode": mode}, 200
+
+
+def get_next():
+    """Próxima ação: revisão espaçada vencida tem prioridade; senão, próximo conceito novo.
+
+    Respeita o MODO do aluno: 'python' segue só a base (suave); 'qa' puxa as trilhas QA cedo.
+    """
+    if _pedagogy is None:
+        return {}
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return _pedagogy.next_action(_mastery_rows(), now, get_learner()["mode"])
+
+
+def get_mastery():
+    """Mapa de domínio por conceito (módulo H), na ordem do currículo."""
+    if _pedagogy is None:
+        return {"items": [], "mastered": 0, "total": 0}
+    current = _mastery_map()
+    items = []
+    for c in _pedagogy.CONCEPTS:
+        strength = current.get(c["key"], 0.0)
+        items.append({
+            "concept": c["key"], "label": c["label"], "level": c["level"],
+            "strength": strength, "mastered": strength >= _pedagogy.MASTERED,
+        })
+    mastered = sum(1 for i in items if i["mastered"])
+    return {"items": items, "mastered": mastered, "total": len(items)}
+
+
+def record_mastery(concept, correct, source=""):
+    """Atualiza o domínio de um conceito após uma tentativa (curva de aprendizagem).
+
+    `source` = origem do sinal (practice|grade|api), registrada no log de eventos.
+    """
+    if not concept:
+        return {"ok": False, "error": "sem concept"}, 400
+    if _pedagogy is None:
+        return {"ok": False, "error": "athena ausente"}, 500
+    conn = db()
+    row = conn.execute(
+        "SELECT strength, attempts, next_review FROM mastery WHERE concept=?", (str(concept),)
+    ).fetchone()
+    cur_strength = row["strength"] if row else 0.0
+    attempts = (row["attempts"] if row else 0) + 1
+    new_strength = _pedagogy.update_strength(cur_strength, bool(correct))
+    # Repetição espaçada: agenda a próxima revisão (intervalo cresce com o domínio).
+    now_dt = datetime.now()
+    last_seen = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+    # Era uma revisão vencida? (sinal p/ o futuro badge "review streak", Loop 4)
+    was_review = _pedagogy.is_due(row["next_review"] if row else "", last_seen)
+    interval = _pedagogy.review_interval_days(new_strength)
+    next_review = (now_dt + timedelta(days=interval)).strftime("%Y-%m-%d %H:%M:%S")
+    conn.execute(
+        """INSERT INTO mastery (concept, strength, last_seen, next_review, attempts)
+           VALUES (?,?,?,?,?)
+           ON CONFLICT(concept) DO UPDATE SET
+               strength=excluded.strength,
+               last_seen=excluded.last_seen,
+               next_review=excluded.next_review,
+               attempts=excluded.attempts""",
+        (str(concept), new_strength, last_seen, next_review, attempts),
+    )
+    conn.commit()
+    conn.close()
+    mastered = new_strength >= _pedagogy.MASTERED
+    log_event("mastery", ref=str(concept), source=source, payload={
+        "strength": new_strength, "mastered": mastered,
+        "attempts": attempts, "review": bool(was_review),
+    })
+    evaluate_badges()  # avalia/persiste badges após mudança de domínio (idempotente)
+    return {"ok": True, "concept": str(concept), "strength": new_strength,
+            "mastered": mastered, "next_review": next_review}, 200
 
 
 # ---------------------------------------------------------------------------
@@ -329,10 +769,21 @@ TUTOR_CLIS = {
 }
 
 
-def build_tutor_prompt(context, question, code):
+_MODE_FRAMING = {
+    "python": ("MODO DO ALUNO: Python base. Foque na lógica e nos fundamentos; explique com "
+               "calma, sem empurrar testes/QA ainda. Só mencione QA se o aluno perguntar."),
+    "qa": ("MODO DO ALUNO: QA Automation. Conecte cada conceito a 'como eu testaria isso' "
+           "(casos de borda, asserts, função pura = testável), reforçando a mentalidade de quem quebra o código."),
+}
+
+
+def build_tutor_prompt(context, question, code, mode="python"):
     code = code or "(o aluno ainda nao escreveu codigo)"
     question = (question or "").strip() or "O aluno pediu ajuda, mas nao escreveu a duvida."
+    framing = _MODE_FRAMING.get(mode, _MODE_FRAMING["python"])
     return f"""{TUTOR_RULES}
+
+{framing}
 
 CONTEXTO DA AULA ATUAL:
 {context or "(sem contexto de pagina)"}
@@ -354,7 +805,7 @@ def run_tutor(tutor, context, question, code):
         return {"ok": False, "feedback": "Tutor invalido."}, 400
     if shutil.which(base[0]) is None:
         return {"ok": False, "feedback": f"'{base[0]}' nao esta no PATH deste terminal."}, 200
-    prompt = build_tutor_prompt(context, question, code)
+    prompt = build_tutor_prompt(context, question, code, get_learner()["mode"])
     try:
         out = subprocess.run(
             base + [prompt], capture_output=True, text=True, timeout=TUTOR_TIMEOUT,
@@ -450,13 +901,20 @@ def record_attempt(exercise_id, code, tests_passed):
     # try/finally garante fechar a conexao mesmo se grade_with_agy lancar (evita
     # vazamento de conexao -> "database is locked" com varios alunos). [agy review]
     conn = db()
+    bump_concept = None
     try:
         ex = conn.execute("SELECT * FROM exercises WHERE id=?", (exercise_id,)).fetchone()
         if ex is None:
             return {"error": "exercicio nao encontrado"}, 404
 
+        # grade_with_agy é lento (subprocess até 180s) -> roda FORA da transação para
+        # não segurar o write-lock. A serialização do bump vem do BEGIN IMMEDIATE abaixo.
         result = grade_with_agy(dict(ex), code, tests_passed)
 
+        # BEGIN IMMEDIATE serializa submits concorrentes do MESMO exercício: só o 1º vê
+        # already_done=False e premia/sobe mastery (mesma garantia de save_practice_progress;
+        # evita XP/mastery em dobro num double-click ou retry de rede). [QA: grade race]
+        conn.execute("BEGIN IMMEDIATE")
         prog = conn.execute(
             "SELECT * FROM progress WHERE exercise_id=?", (exercise_id,)
         ).fetchone()
@@ -469,6 +927,11 @@ def record_attempt(exercise_id, code, tests_passed):
             awarded = ex["points"]
             new_status = "done"
             new_score = ex["points"]
+            # Unifica o dashboard com a MESMA curva de mastery da prática (Athena §A3):
+            # 1a aprovação de um exercício do painel sobe o domínio do conceito do capítulo.
+            if _pedagogy is not None:
+                ex_type = ex["type"] if "type" in ex.keys() else ""
+                bump_concept = _pedagogy.concept_for_chapter(ex["chapter"], ex_type)
 
         conn.execute(
             """UPDATE progress
@@ -479,14 +942,20 @@ def record_attempt(exercise_id, code, tests_passed):
         )
         conn.commit()
 
-        return {
+        payload = {
             "feedback": result["feedback"],
             "passed": bool(result.get("passed")),
             "xp_awarded": awarded,
             "already_done": already_done,
-        }, 200
+        }
     finally:
         conn.close()
+
+    # bump DEPOIS de fechar a conexão principal — record_mastery abre a sua (evita lock).
+    if bump_concept:
+        record_mastery(bump_concept, True, source="grade")
+        payload["mastery_bumped"] = bump_concept
+    return payload, 200
 
 
 # ---------------------------------------------------------------------------
@@ -547,6 +1016,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Location", "/course/")
             self.end_headers()
             return
+        # Raiz agora abre o CURSO (futurecoder) — é a plataforma principal. O dashboard
+        # legado continua acessível direto em /index.html.
+        if path in ("", "/"):
+            self.send_response(302)
+            self.send_header("Location", "/course/")
+            self.end_headers()
+            return
         if path.endswith("service-worker.js"):
             return self._service_worker_stub()
         if self.path.startswith("/api/track"):
@@ -555,6 +1031,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self._json(get_practice_progress())
         if self.path.startswith("/api/course-progress"):
             return self._json(get_course_progress())
+        if self.path.startswith("/api/agent-run"):
+            return self._json(get_agent_runs())
+        if self.path.startswith("/api/events"):
+            from urllib.parse import urlparse, parse_qs
+            q = parse_qs(urlparse(self.path).query)
+            raw = (q.get("limit") or ["50"])[0]
+            limit = int(raw) if str(raw).isdigit() else 50   # nunca 500 em ?limit=abc
+            return self._json(get_events(limit))
+        if self.path.startswith("/api/badges"):
+            return self._json(get_badges())
+        if self.path.startswith("/api/plan"):
+            return self._json(get_plan())
+        if self.path.startswith("/api/next"):
+            return self._json(get_next())
+        if self.path.startswith("/api/learner"):
+            return self._json(get_learner())
+        if self.path.startswith("/api/mastery"):
+            return self._json(get_mastery())
+        if self.path.startswith("/api/memory"):
+            from urllib.parse import urlparse, parse_qs
+            q = parse_qs(urlparse(self.path).query)
+            query = (q.get("q") or [""])[0]
+            limit = int((q.get("limit") or ["5"])[0])
+            return self._json(recall_memory(query, limit))
         if self.path.startswith("/api/course"):
             return self._json({"course": COURSE, "attribution": ATTRIBUTION})
         return super().do_GET()  # serve dashboard, estaticos e /course/*
@@ -591,6 +1091,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 data.get("exercise_id", ""),
                 data.get("xp", 0),
                 data.get("mode", ""),
+                data.get("code", ""),
             )
             return self._json(payload, code)
         if self.path.startswith("/api/tutor"):
@@ -599,6 +1100,34 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 data.get("context", ""),
                 data.get("question", ""),
                 data.get("code", ""),
+            )
+            return self._json(payload, code)
+        if self.path.startswith("/api/agent-run"):
+            payload, code = record_agent_run(
+                data.get("agent", ""),
+                data.get("task", ""),
+                data.get("provider", ""),
+                data.get("status", "ok"),
+                data.get("tokens", 0),
+                data.get("notes", ""),
+            )
+            return self._json(payload, code)
+        if self.path.startswith("/api/learner"):
+            payload, code = set_learner_mode(data.get("mode", ""))
+            return self._json(payload, code)
+        if self.path.startswith("/api/mastery"):
+            payload, code = record_mastery(
+                data.get("concept", ""),
+                bool(data.get("correct", False)),
+                source="api",
+            )
+            return self._json(payload, code)
+        if self.path.startswith("/api/memory"):
+            payload, code = index_memory(
+                data.get("kind", ""),
+                data.get("title", ""),
+                data.get("body", ""),
+                data.get("tags", ""),
             )
             return self._json(payload, code)
         self._json({"error": "rota desconhecida"}, 404)
