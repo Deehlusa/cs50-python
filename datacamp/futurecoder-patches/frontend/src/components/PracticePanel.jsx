@@ -6,7 +6,7 @@
 import React from "react";
 import exercisesBr from "../exercises_br.json";
 import {runExercise, stopExercise} from "./PyodideRunner";
-import {savePracticeProgress} from "../book/serverSync";
+import {savePracticeProgress, getPracticeProgress} from "../book/serverSync";
 
 const PRACTICE_KEY = "futurecoder_practice_v1";
 
@@ -80,6 +80,11 @@ function Feedback({result}) {
             </li>
           ))}
         </ul>
+        {!result.ok &&
+          <div className="practice-next-hint">
+            💡 Próximo passo: olhe o <b>primeiro caso vermelho</b> — compare o que sua função devolveu
+            com o esperado. Travou? Clique em <b>Dica</b>.
+          </div>}
       </div>
     );
   }
@@ -101,12 +106,18 @@ function Feedback({result}) {
           </li>
         ))}
       </ul>
+      {!result.ok &&
+        <div className="practice-next-hint">
+          🛡️ Mentalidade QA: para cada <b>bug que sobreviveu</b>, adicione um <code>assert</code> com
+          um caso que o exponha. Pense em entradas-limite (vazio, zero, negativo).
+        </div>}
     </div>
   );
 }
 
-function ExerciseCard({ex, done, onDone}) {
-  const [code, setCode] = React.useState(ex.starter || "");
+function ExerciseCard({ex, done, saved, onDone}) {
+  // Restaura o CÓDIGO que passou (checkpoint) ao montar/F5; senão começa do starter.
+  const [code, setCode] = React.useState((saved && saved.code) || ex.starter || "");
   const [running, setRunning] = React.useState(false);
   const [result, setResult] = React.useState(null);
   const [hintLevel, setHintLevel] = React.useState(0);
@@ -120,7 +131,7 @@ function ExerciseCard({ex, done, onDone}) {
     setRunning(false);
     if (r && r.ok) {
       touchStreak();
-      if (!done) onDone(ex);
+      onDone(ex, code);   // salva/atualiza o checkpoint do código que passou
     }
   };
 
@@ -143,6 +154,8 @@ function ExerciseCard({ex, done, onDone}) {
         <span className="practice-card-xp">{done ? "✓ " : ""}{ex.xp} XP</span>
       </div>
       <div className="practice-prompt">{ex.prompt}</div>
+      {ex.concept_intro &&
+        <div className="practice-concept-intro">{ex.concept_intro}</div>}
       <textarea
         className="practice-editor"
         spellCheck={false}
@@ -164,6 +177,12 @@ function ExerciseCard({ex, done, onDone}) {
         <button className="btn btn-sm practice-reset" onClick={() => { setCode(ex.starter || ""); setResult(null); }}>
           ↺ Reiniciar
         </button>
+        {saved && saved.code && saved.code !== code &&
+          <button className="btn btn-sm practice-checkpoint"
+                  title="Restaura o código que você fez passar neste exercício"
+                  onClick={() => { setCode(saved.code); setResult(null); }}>
+            🚩 Recuperar meu código que passou
+          </button>}
       </div>
       {hintLevel > 0 &&
         <div className="practice-hints">
@@ -177,18 +196,64 @@ function ExerciseCard({ex, done, onDone}) {
 }
 
 export const PracticePanel = ({chapterTitle}) => {
-  const [open, setOpen] = React.useState(false);
+  // Auto-abre quando o capítulo tem exercício NÃO feito: a prática (XP/badges/streak)
+  // ficava colapsada abaixo da dobra e muitos alunos nunca a descobriam. [UX fora do Athena]
+  const autoOpen = () => {
+    const ch = getExercisesForChapter(chapterTitle);
+    const p = loadProgress();
+    return !!(ch && ch.exercises && ch.exercises.some(e => !p[e.id]));
+  };
+  const [open, setOpen] = React.useState(autoOpen);
+  // Reavalia ao TROCAR de capítulo (navegar entre páginas do mesmo capítulo preserva o
+  // toggle manual, pois chapterTitle não muda).
+  React.useEffect(() => { setOpen(autoOpen()); }, [chapterTitle]);  // eslint-disable-line
   const [progress, setProgress] = React.useState(loadProgress());
+  const [syncWarn, setSyncWarn] = React.useState("");
+  // GAP-5: hidrata do servidor o código que passou quando o localStorage está vazio (ou sem
+  // code) para esse exercício. O localStorage segue como camada rápida (não sobrescreve o que
+  // já existe localmente). Roda 1x no mount; best-effort (server off → não faz nada).
+  React.useEffect(() => {
+    let alive = true;
+    getPracticeProgress().then(({items}) => {
+      if (!alive || !items || !items.length) return;
+      const p = loadProgress();
+      let changed = false;
+      items.forEach(it => {
+        const id = it.exercise_id;
+        const local = p[id];
+        if (it.code && (!local || !local.code)) {
+          p[id] = {
+            done: true, xp: it.xp || (local && local.xp) || 0,
+            mode: it.mode || (local && local.mode) || "", code: it.code,
+          };
+          changed = true;
+        }
+      });
+      if (changed) { persist(p); setProgress({...p}); }
+    });
+    return () => { alive = false; };
+  }, []);  // eslint-disable-line
   const chapter = getExercisesForChapter(chapterTitle);
   if (!chapter || !chapter.exercises || !chapter.exercises.length) return null;
 
-  const onDone = (ex) => {
+  const onDone = async (ex, code) => {
     const p = loadProgress();
-    if (!p[ex.id]) {
-      p[ex.id] = {done: true, xp: ex.xp || 0, mode: ex.mode};
-      persist(p);
-      setProgress({...p});
-      try { savePracticeProgress(ex.id, ex.xp || 0, ex.mode); } catch (e) {}
+    // Guarda o CÓDIGO que passou (checkpoint): sobrevive ao F5 e dá pra recuperar depois.
+    p[ex.id] = {
+      done: true, xp: ex.xp || 0, mode: ex.mode,
+      code: code != null ? code : (p[ex.id] && p[ex.id].code) || "",
+    };
+    persist(p);
+    setProgress({...p});
+    // GAP-5: sincroniza XP/mastery (o servidor é idempotente: só a 1ª conclusão sobe domínio)
+    // E persiste o código que passou no servidor a cada conclusão (checkpoint sempre fresco).
+    // Se falhar, AVISA — o progresso local segue seguro.
+    const res = await savePracticeProgress(ex.id, ex.xp || 0, ex.mode, p[ex.id].code);
+    if (!res || !res.ok) {
+      setSyncWarn("Salvo localmente, mas a sincronização com o servidor falhou ("
+        + ((res && res.error) || "desconhecido") + "). Seu progresso local está seguro.");
+    } else {
+      setSyncWarn("");
     }
   };
 
@@ -205,9 +270,19 @@ export const PracticePanel = ({chapterTitle}) => {
         <div className="practice-body">
           <div className="practice-intro">
             Você escreve o código — a plataforma roda e te guia com dicas, nunca entrega a solução pronta.
+            {doneCount === 0
+              ? <> Comece pelo <b>N1 (aquecimento)</b> e suba de nível.</>
+              : <> {doneCount}/{exercises.length} feitos — continue de onde parou.</>}
           </div>
+          {syncWarn &&
+            <div className="practice-syncwarn">⚠ {syncWarn}</div>}
           {exercises.map(ex => (
-            <ExerciseCard key={ex.id} ex={ex} done={!!progress[ex.id]} onDone={onDone}/>
+            // key inclui se já há code salvo: quando a hidratação do servidor (GAP-5) traz o
+            // código que passou para um exercício que estava sem code local, a key vira "…:s" e
+            // o card remonta UMA vez restaurando o código (sem perder edição — só no 1º load).
+            <ExerciseCard key={ex.id + (progress[ex.id] && progress[ex.id].code ? ":s" : ":n")}
+                          ex={ex} done={!!progress[ex.id]}
+                          saved={progress[ex.id]} onDone={onDone}/>
           ))}
         </div>}
     </div>

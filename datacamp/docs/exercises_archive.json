@@ -1,0 +1,133 @@
+{
+  "_meta": {
+    "reason": "Curadoria 2026-06-27: trilha 'Loops Aninhadas' enxugada para escada de 4 sem redundância. Exercícios válidos preservados aqui para reuso.",
+    "source_chapter": "Loops Aninhadas"
+  },
+  "loops-nested-n1-coordinate-finder": {
+    "id": "loops-nested-n1-coordinate-finder",
+    "level": 1,
+    "mode": "write_code",
+    "title": "Localizador de coordenadas numa matriz",
+    "concept": "for dentro de for (varrer matriz)",
+    "prompt": "Em automação de testes de UI, a gente acha elementos numa grade de tela (matriz = lista de listas). Escreva `find_element_coordinates(grid, target)` que percorre a matriz com loops aninhados (linha por linha, coluna por coluna) e RETORNA uma lista com as coordenadas `[linha, coluna]` de cada ocorrência de `target`. Caso-limite de QA: se não achar nada — ou a grade for vazia — retorne `[]`. Use LISTAS `[r, c]`, nunca tuplas.",
+    "starter": "def find_element_coordinates(grid, target):\n    # use dois for aninhados e devolva uma lista de [linha, coluna]\n    ...\n",
+    "tests": [
+      {
+        "call": "find_element_coordinates([[1, 2, 3], [4, 5, 2], [2, 7, 8]], 2)",
+        "expect": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            0
+          ]
+        ]
+      },
+      {
+        "call": "find_element_coordinates([[9, 9], [9, 9]], 9)",
+        "expect": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "call": "find_element_coordinates([[1, 2], [3, 4]], 5)",
+        "expect": []
+      },
+      {
+        "call": "find_element_coordinates([], 1)",
+        "expect": []
+      }
+    ],
+    "hints": [
+      "Use `for r in range(len(grid))` para as linhas e, dentro, `for c in range(len(grid[r]))` para as colunas.",
+      "No loop interno, compare `grid[r][c] == target`. Se bater, guarde a coordenada na lista de resultados.",
+      "Guarde como LISTA: `coordinates.append([r, c])`. Tuplas `(r, c)` não batem com o JSON do validador."
+    ],
+    "xp": 10,
+    "_solution": "def find_element_coordinates(grid, target):\n    if not grid or not grid[0]:\n        return []\n    coordinates = []\n    for r in range(len(grid)):\n        for c in range(len(grid[r])):\n            if grid[r][c] == target:\n                coordinates.append([r, c])\n    return coordinates\n",
+    "_dropped_reason": "redundante com faulty-sensors (ambos coletam [r,c] por condição); faulty-sensors é mais rico (jagged)."
+  },
+  "nested-loops-n2-count-matches": {
+    "id": "nested-loops-n2-count-matches",
+    "level": 2,
+    "mode": "write_code",
+    "title": "Contar ocorrências numa grade",
+    "concept": "loop aninhado com condição",
+    "prompt": "Combinando loops aninhados com uma condição: escreva `count_matches(grid, target)` que percorre toda a grade 2D e devolve quantas células são IGUAIS a `target`.\n\nMentalidade QA: teste o caso em que o alvo nunca aparece (resultado 0) e o caso da grade vazia (também 0). Não suponha que o alvo é sempre número — ele pode ser uma string.",
+    "starter": "def count_matches(grid, target):\n    count = 0\n    # percorra cada célula com dois loops\n    # quando a célula for igual a target, incremente count\n    ...\n    return count\n",
+    "hints": [
+      "Reaproveite a estrutura de dois loops do exercício anterior, mas agora some 1 só quando uma condição for verdadeira.",
+      "Dentro do loop interno, use `if cell == target:` antes de incrementar — assim você só conta os que batem.",
+      "Esqueleto: `for row in grid:` → `for cell in row:` → `if cell == target: count += 1`. Comece com `count = 0`."
+    ],
+    "xp": 15,
+    "tests": [
+      {
+        "call": "count_matches([[1, 0, 1], [0, 1, 0]], 1)",
+        "expect": 3
+      },
+      {
+        "call": "count_matches([['a', 'b'], ['a', 'a']], 'a')",
+        "expect": 3
+      },
+      {
+        "call": "count_matches([[1, 1], [1, 1]], 0)",
+        "expect": 0
+      },
+      {
+        "call": "count_matches([], 5)",
+        "expect": 0
+      }
+    ],
+    "_solution": "def count_matches(grid, target):\n    count = 0\n    for row in grid:\n        for cell in row:\n            if cell == target:\n                count += 1\n    return count\n",
+    "_dropped_reason": "redundante com count_cells (ambos acumulam em loop aninhado)."
+  },
+  "nested-loops-n3-test-diagonal": {
+    "id": "nested-loops-n3-test-diagonal",
+    "level": 3,
+    "mode": "write_test",
+    "title": "Você testa: soma da diagonal",
+    "concept": "escrever testes para grade 2D",
+    "prompt": "Agora VOCÊ é o QA. A função `sum_diagonal(grid)` já está pronta (read-only): ela recebe uma grade quadrada (lista de listas) e devolve a soma da diagonal principal — os elementos `grid[0][0]`, `grid[1][1]`, `grid[2][2]`, e assim por diante.\n\nEscreva ao menos 3 testes com `assert` que comprovem que a função está correta. Pense como alguém que quer QUEBRAR a função: inclua uma grade 1x1 (caso mínimo), uma grade 2x2 e uma 3x3. Bons testes aqui pegam versões com bug que somam a linha errada, a coluna errada, ou a outra diagonal.",
+    "starter": "# A função sum_diagonal(grid) já existe e está correta.\n# Escreva seus testes abaixo usando assert.\n# Exemplo de formato: assert sum_diagonal([[5]]) == 5\n\nassert sum_diagonal(...) == ...\n",
+    "hints": [
+      "A diagonal principal pega um elemento por linha avançando também na coluna: posição (0,0), depois (1,1), depois (2,2). Calcule à mão o que cada grade deve somar.",
+      "Use pelo menos três tamanhos diferentes. O caso 1x1 (`[[5]]`) é o mínimo e expõe bugs de índice; o 3x3 expõe quem soma a linha ou a coluna inteira em vez da diagonal.",
+      "Modelo: `assert sum_diagonal([[1, 2], [3, 4]]) == 5` (1 + 4). Some você mesmo a diagonal de uma grade 3x3 como `[[1,2,3],[4,5,6],[7,8,9]]` (1 + 5 + 9) e escreva o assert."
+    ],
+    "xp": 30,
+    "target_func": "sum_diagonal",
+    "reference_impl": "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        total += grid[i][i]\n    return total\n",
+    "mutants": [
+      "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        for cell in grid[i]:\n            total += cell\n    return total\n",
+      "def sum_diagonal(grid):\n    total = 0\n    n = len(grid)\n    for i in range(n):\n        total += grid[i][n - 1 - i]\n    return total\n",
+      "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        total += grid[0][i]\n    return total\n",
+      "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        total += grid[i][0]\n    return total\n"
+    ],
+    "min_tests": 3,
+    "_dropped_reason": "sum_diagonal percorre só a diagonal (grid[i][i]) — não é loop aninhado de verdade; has_overlap é o write_test mais adequado.",
+    "_solution": "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        total += grid[i][i]\n    return total\n",
+    "_solution_note": "write_test: a 'solução' é a reference_impl que o teste do aluno deve provar; mutantes preservados."
+  }
+}

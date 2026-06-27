@@ -10,6 +10,7 @@
         "title": "Calculadora: total de um pedido",
         "concept": "Aritmética básica no shell",
         "prompt": "No shell o Python funciona como uma calculadora: você digita uma expressão e ele devolve o resultado. Escreva a função `calc_total(price, quantity)` que retorna o valor total de um pedido, multiplicando o preço unitário pela quantidade.\n\nPense como QA: o que acontece quando a quantidade é zero? O resultado tem que ser 0, não um erro. Garanta que sua função devolve o número correto também nesse caso.",
+        "concept_intro": "🧩 Primeiro contato: você vai escrever dentro de uma FUNÇÃO. A linha `def calc_total(price, quantity):` já vem pronta — `def` cria a função e o que está entre parênteses são as ENTRADAS. Seu trabalho é só o miolo (onde está `...`). Para DEVOLVER o resultado use `return` (diferente de `print`, que só mostra na tela). O conceito completo vem no capítulo Funções — por enquanto, confie na estrutura.",
         "starter": "def calc_total(price, quantity):\n    # retorne price multiplicado por quantity\n    ...\n",
         "tests": [
           {
@@ -28,7 +29,7 @@
         "hints": [
           "Qual operador o Python usa para multiplicar dois números? Não é o 'x' que você escreveria no caderno.",
           "Multiplicação em Python é o asterisco `*`. Você quer multiplicar `price` por `quantity` e devolver esse valor com `return`.",
-          "O corpo da função é uma linha só: `return price * quantity`. Quando `quantity` for 0, qualquer número vezes 0 já dá 0 — você não precisa de um `if` para isso. Repare que multiplicar por um float (2.5) faz o resultado virar float (5.0)."
+          "O resultado é o preço multiplicado pela quantidade — uma expressão só, devolvida direto. Não precisa de `if` para quantidade 0 (multiplicar por zero já dá zero). Multiplicar por um valor com casas decimais faz o resultado virar float."
         ],
         "xp": 10
       },
@@ -39,6 +40,7 @@
         "title": "Que tipo isto vira?",
         "concept": "Tipos int, float, str",
         "prompt": "No shell, prever o resultado é metade do trabalho. Aqui você vai prever o TIPO. Escreva a função `result_type(a, b)` que soma `a` com `b` e retorna o NOME do tipo do resultado (a string `'int'`, `'float'` ou `'str'`).\n\nDica de QA: somar dois inteiros dá `int`, mas misturar um `int` com um `float` muda o tipo para `float`. E somar duas strings? Isso não soma, concatena — e o tipo continua `str`. Cubra esses três comportamentos.\n\nUse `type(...)` para descobrir o tipo e `.__name__` para pegar só o nome como string. Exemplo isolado: `type(7).__name__` devolve `'int'`.",
+        "concept_intro": "🧩 Ferramentas prontas: `type(x)` descobre o TIPO de um valor e `.__name__` te dá o nome desse tipo em texto (ex.: `type(3).__name__` → `'int'`). Use como o enunciado pede; o foco aqui é entender que cada valor tem um tipo.",
         "starter": "def result_type(a, b):\n    # some a com b e retorne o NOME do tipo do resultado\n    ...\n",
         "tests": [
           {
@@ -57,7 +59,7 @@
         "hints": [
           "Primeiro calcule `a + b`. Depois pergunte ao Python: qual é o tipo desse resultado?",
           "`type(valor)` devolve o tipo, e `.__name__` transforma esse tipo no nome em texto. Você quer aplicar isso ao resultado da soma.",
-          "Encadeie tudo numa expressão só: `return type(a + b).__name__`. Você não precisa de `if` — o próprio Python decide se a soma vira int, float ou str."
+          "Some os dois primeiro — o Python já escolhe o tipo do resultado. Depois descubra o NOME desse tipo: a função `type()` devolve o tipo, e todo tipo carrega um atributo com seu nome legível. Encadeie numa expressão, sem `if`."
         ],
         "xp": 15
       },
@@ -90,7 +92,7 @@
         "hints": [
           "Antes de dividir, você precisa checar uma condição perigosa. Qual valor de `b` faria a divisão quebrar?",
           "Use um `if b == 0:` para tratar o caso ruim primeiro e devolver a mensagem de erro. Só depois, se passar, faça a divisão normal.",
-          "A estrutura é: `if b == 0:` retorna a string de erro; senão, `return a / b`. Repare que `/` sempre devolve float (10 / 2 vira 5.0), por isso os testes esperam 5.0 e não 5."
+          "São dois caminhos: quando o divisor é o valor perigoso, devolva a mensagem de erro (string); caso contrário, faça a divisão. Lembre que a divisão `/` sempre devolve float — por isso o teste espera 5.0, não 5."
         ],
         "xp": 30
       }
@@ -106,11 +108,12 @@
         "title": "Crie sua primeira string",
         "concept": "criar string literal",
         "prompt": "No QA, quase tudo começa com texto: nomes de usuário, mensagens esperadas, payloads. Escreva a função `make_greeting()` que NÃO recebe nada e simplesmente devolve a string `\"Olá, mundo!\"` (exatamente assim, com a vírgula, o espaço e o ponto de exclamação). Repare que a string precisa estar entre aspas. Pense como QA: o valor de retorno tem que bater caractere por caractere com o esperado — um espaço a mais já reprovaria o teste.",
+        "concept_intro": "🧩 Lembrete: como no capítulo anterior, você preenche o miolo de uma FUNÇÃO (o `def` já vem pronto) e DEVOLVE o texto com `return`.",
         "starter": "def make_greeting():\n    # devolva a string exata \"Olá, mundo!\"\n    ...\n",
         "hints": [
           "Uma string é qualquer texto entre aspas. Você só precisa devolver esse texto com `return`.",
           "Não use `print()` aqui — `print` mostra na tela, mas o teste compara o que a função RETORNA. Use `return \"...\"`.",
-          "O corpo da função é apenas: `return \"Olá, mundo!\"` — confira a vírgula, o espaço depois dela e o `!` no fim."
+          "O corpo é uma linha só que devolve a saudação EXATA pedida — confira pontuação, espaços e o ponto de exclamação, caractere por caractere, contra o enunciado."
         ],
         "xp": 10,
         "tests": [
@@ -131,11 +134,12 @@
         "title": "Aspas dentro de aspas",
         "concept": "escolher tipo de aspas",
         "prompt": "Em Python você pode usar aspas simples `'...'` ou duplas `\"...\"`. Isso importa quando o próprio texto contém uma aspa. Escreva a função `quote_word()` que devolve exatamente esta frase, COM as aspas duplas fazendo parte do texto: ela diz que a palavra está entre aspas. O retorno esperado, lido literalmente, é: a palavra \"teste\" está entre aspas. Mentalidade QA: muitos bugs aparecem justamente quando um texto contém aspas e alguém escapa errado.",
+        "concept_intro": "🧩 Conceito novo: quando o próprio texto contém aspas, você delimita a string com o OUTRO tipo de aspas. Para ter aspas duplas DENTRO, escreva a string com aspas simples por fora — ex.: 'ele disse \"oi\"'.",
         "starter": "def quote_word():\n    # devolva:  a palavra \"teste\" está entre aspas\n    # dica: as aspas duplas fazem parte do texto\n    ...\n",
         "hints": [
           "Se o texto tem aspas DUPLAS dentro, fica mais fácil delimitar a string com aspas SIMPLES por fora.",
           "Algo no formato: `return 'a palavra \"...\" ...'` — as aspas duplas viram caracteres normais quando estão dentro de aspas simples.",
-          "Resposta no formato: `return 'a palavra \"teste\" está entre aspas'`."
+          "Você precisa de aspas DUPLAS dentro do texto, então delimite a string por fora com aspas SIMPLES — assim as duplas viram conteúdo normal. Use o texto exato do enunciado entre as aspas simples."
         ],
         "xp": 10,
         "tests": [
@@ -160,7 +164,7 @@
         "hints": [
           "O `+` cola strings: `\"a\" + \"b\"` vira `\"ab\"`. Você precisa colar TRÊS pedaços: o nome, um espaço, e o sobrenome.",
           "O espaço também é uma string: `\" \"`. Coloque-o entre as duas variáveis.",
-          "Estrutura: `return first + \" \" + last`."
+          "Junte as duas partes, mas coloque um separador de espaço ENTRE elas (uma string de um espaço). São três pedaços concatenados na ordem certa."
         ],
         "xp": 15,
         "tests": [
@@ -189,7 +193,7 @@
         "hints": [
           "Para repetir uma string, multiplique-a por um número: `\"x\" * 4` dá `\"xxxx\"`.",
           "Aqui o caractere repetido é o hífen `\"-\"`, e a quantidade é o parâmetro `n`.",
-          "Estrutura: `return \"-\" * n`. Repare que `\"-\" * 0` já devolve `\"\"` sozinho — não precisa de `if`."
+          "Em Python, multiplicar uma string por um número a repete. Use isso para montar a linha do tamanho pedido — repetir zero vezes já devolve string vazia sozinho, sem `if`."
         ],
         "xp": 15,
         "tests": [
@@ -248,6 +252,7 @@
         "title": "Montar o username de teste",
         "concept": "atribuir variáveis e reusar",
         "prompt": "Em QA, a gente cria contas de teste o tempo todo. Escreva a função `build_username(first, last)` que recebe o primeiro nome e o sobrenome (duas strings), junta os dois numa variável e devolve tudo em letras minúsculas (use `.lower()`).\n\nExemplo: `build_username('Ana', 'Silva')` deve devolver `'anasilva'`.\n\nMentalidade QA: e se o sobrenome vier vazio (`''`)? A função NÃO pode quebrar — ela deve devolver só o que sobrou. Pense nesse caso antes de declarar pronto.",
+        "concept_intro": "🧩 Conceito antecipado — MÉTODO de string: é uma ação que você aplica com um ponto. Ex.: `'ANA'.lower()` vira `'ana'`. Você verá métodos a fundo mais pra frente; por agora, use `.lower()` como pedido.",
         "starter": "def build_username(first, last):\n    # 1. junte first e last numa variável\n    # 2. devolva tudo em minúsculas\n    ...",
         "tests": [
           {
@@ -266,7 +271,7 @@
         "hints": [
           "Você consegue juntar duas strings com o operador `+`. Guarde o resultado numa variável antes de devolver.",
           "Existe um método de string que transforma tudo em minúsculas. Lembra qual é? Ele se aplica DEPOIS de juntar os nomes.",
-          "Esqueleto: `full = first + last` e depois `return full.lower()`. Se `last` for `''`, `first + ''` continua sendo `first` — por isso não quebra."
+          "Guarde a concatenação dos nomes numa variável e, sobre ela, aplique o método que deixa tudo minúsculo, devolvendo o resultado. Se um dos nomes vier vazio, a concatenação não quebra."
         ],
         "xp": 10
       },
@@ -295,7 +300,7 @@
         "hints": [
           "Você precisa de três pedaços: o prefixo, um traço `'-'`, e o número. Mas o número é int...",
           "Para juntar um número com texto usando `+`, o número precisa virar string primeiro. Qual função faz `int` virar `str`?",
-          "Esqueleto: `return prefix + \"-\" + str(number)`. O `str(number)` é o que evita o `TypeError`."
+          "Concatene o prefixo, um hífen e o número — mas o número é int e não soma com string direto. Converta-o para texto antes de juntar (é isso que evita o `TypeError`)."
         ],
         "xp": 15
       },
@@ -306,6 +311,7 @@
         "title": "Calcular o total de um pedido (mini-projeto)",
         "concept": "cast float, cálculo, arredondar",
         "prompt": "Você está testando um carrinho de compras. Os valores chegam da interface como TEXTO (é assim que a tela entrega). Escreva a função `price_total(price_str, quantity_str)` que:\n\n1. recebe o preço unitário como string (ex: `'10.50'`) e a quantidade como string (ex: `'2'`);\n2. converte o preço para `float` e a quantidade para `int`;\n3. guarda o total numa variável (preço x quantidade);\n4. devolve o total arredondado para 2 casas com `round(total, 2)`.\n\nExemplo: `price_total('10.50', '2')` deve devolver `21.0`.\n\nMentalidade QA — quebre de propósito: o que acontece quando a quantidade é `'0'`? E quando o preço é `'0'`? O total tem que ser `0.0`, sem erro. Esses são os edge cases clássicos de um carrinho.",
+        "concept_intro": "🧩 Conceito — CONVERSÃO de tipo (cast): `float('10.5')` vira o número 10.5 e `int('3')` vira 3. Dados de tela chegam como TEXTO; converter antes de calcular é mentalidade de QA.",
         "starter": "def price_total(price_str, quantity_str):\n    # 1. converta price_str para float\n    # 2. converta quantity_str para int\n    # 3. calcule o total e arredonde para 2 casas\n    ...",
         "tests": [
           {
@@ -328,7 +334,7 @@
         "hints": [
           "Preço tem casas decimais, então `float()`. Quantidade é contagem inteira, então `int()`. Cada um tem o seu cast.",
           "Depois de converter, multiplique e guarde numa variável `total`. Só no fim você arredonda.",
-          "Esqueleto: `price = float(price_str)`, `quantity = int(quantity_str)`, `total = price * quantity`, `return round(total, 2)`. Se `quantity` for `0`, `price * 0` já dá `0.0` — nada quebra."
+          "Converta cada entrada para o tipo certo: preço tem casas decimais, quantidade é inteiro. Multiplique os valores convertidos e, no fim, arredonde para 2 casas antes de devolver (essencial em valores monetários)."
         ],
         "xp": 30
       }
@@ -344,6 +350,7 @@
         "title": "Somar de 1 até n",
         "concept": "for com range acumulando",
         "prompt": "Aquecimento de loop. Escreva a função `sum_to_n(n)` que percorre os números de 1 até `n` (inclusive) com um `for` e devolve a soma de todos eles. Por exemplo, `sum_to_n(3)` é 1 + 2 + 3 = 6.\n\nMentalidade de QA: pense no caso negativo antes de codar. O que sua função deve devolver quando `n` for 0, ou seja, quando o loop não roda nenhuma vez? Um acumulador bem iniciado responde isso sozinho.",
+        "concept_intro": "🧩 Dois padrões antecipados aqui: o ACUMULADOR (uma variável criada ANTES do loop que vai juntando o resultado a cada volta — repare no `total = 0` que já veio pronto) e o `range`, que gera a sequência de números a percorrer. Pegadinha clássica de QA: `range` PARA antes do limite final. O acumulador é o coração de quase todo loop — você o reverá o capítulo inteiro; por ora, confie nele.",
         "starter": "def sum_to_n(n):\n    total = 0\n    # percorra de 1 ate n e some em total\n    ...\n    return total",
         "tests": [
           {
@@ -362,7 +369,7 @@
         "hints": [
           "Voce precisa de uma variavel acumuladora ANTES do loop. Se ela comeca em 0 e o loop nao roda, o retorno ja sai certo para n=0.",
           "Para incluir o proprio n, lembre que `range` para ANTES do limite final. `range(1, n + 1)` vai de 1 ate n inclusive.",
-          "Esqueleto: `for i in range(1, n + 1):` e dentro `total += i`. O `+=` soma i ao que total ja tinha."
+          "Inicialize um acumulador em zero antes do loop. Percorra de 1 até n — atenção: `range` para ANTES do fim, então ajuste o limite. A cada passo, some o número atual ao acumulador com o operador que soma-e-reatribui."
         ],
         "xp": 10
       },
@@ -391,7 +398,7 @@
         "hints": [
           "O contador `passed` comeca em 0 fora do loop. Dentro do loop voce decide se incrementa ou nao.",
           "O corte e `>= 70` (maior OU igual). Teste mental: 70 deve contar, 69 nao. Qual operador garante isso?",
-          "Esqueleto dentro do loop: `if score >= 70:` e na linha indentada `passed += 1`. Note a indentacao dupla: o if esta dentro do for."
+          "Use um contador iniciado em zero. Dentro do loop, teste se a nota atingiu o corte de aprovação e só nesse caso incremente o contador. A indentação importa: o teste fica DENTRO do for."
         ],
         "xp": 15
       },
@@ -435,6 +442,7 @@
         "title": "Mini-projeto: gerador de IDs de teste",
         "concept": "range, lista e formatacao",
         "prompt": "Mini-projeto de QA: gerar identificadores de casos de teste numerados. Escreva `build_test_ids(prefix, count)` que devolve uma LISTA com `count` ids no formato `PREFIXO-NNN`, comecando em 1, com o numero sempre em 3 digitos (preenchido com zeros a esquerda).\n\nEx: `build_test_ids('TC', 3)` -> `['TC-001', 'TC-002', 'TC-003']`.\n\nAgora tente quebra-la (mentalidade QA): o que acontece se `count` for 0? A funcao deve devolver uma lista VAZIA, sem erro. Confira tambem que o numero 1 vira '001' e nao '1'.",
+        "concept_intro": "🧩 Este mini-projeto antecipa dois conceitos: a LISTA que cresce com `.append(...)` (adiciona um item no fim — o `ids = []` já está pronto) e a FORMATAÇÃO de número com zeros à esquerda para virar `001`, `002` (o `NNN`). Listas ganham um capítulo só pra elas mais à frente; aqui confie no `.append` e foque em montar cada id.",
         "starter": "def build_test_ids(prefix, count):\n    ids = []\n    for i in range(1, count + 1):\n        # monte o id 'PREFIXO-NNN' e adicione na lista\n        ...\n    return ids",
         "tests": [
           {
@@ -479,7 +487,7 @@
         "hints": [
           "Você precisa de DOIS caminhos: um quando a condição é verdadeira e outro quando é falsa. Isso é um `if/else`.",
           "A condição que separa 'positivo' de 'nao positivo' é `number > 0`. Cuidado: zero faz essa condição ser False.",
-          "Esqueleto: `if number > 0:` então `return \"positivo\"`, senão (`else:`) `return \"nao positivo\"`. Você completa o corpo."
+          "Teste a condição de positividade (lembre: zero NÃO é positivo). No ramo verdadeiro devolva a palavra de positivo; no `else`, a de não-positivo. Confira o texto exato que os testes esperam."
         ],
         "tests": [
           {
@@ -508,7 +516,7 @@
         "hints": [
           "Três faixas pedem três ramos: `if`, `elif` e `else`. A ordem em que você testa importa.",
           "Comece pela faixa mais baixa: `if age < 13:`. Depois `elif age < 18:` cobre o intervalo 13..17 automaticamente, porque quem é menor que 13 já saiu antes.",
-          "Esqueleto: `if age < 13: return \"crianca\"` / `elif age < 18: return \"adolescente\"` / `else: return \"adulto\"`. Confira a fronteira 17 vs 18."
+          "Teste em cascata, da faixa mais baixa para a mais alta: o primeiro `if` pega os mais novos; cada `elif` só roda se os anteriores falharam, então você não repete limites; o `else` cobre o resto. Cuidado na fronteira 17 vs 18."
         ],
         "tests": [
           {
@@ -545,11 +553,12 @@
         "title": "Kata: conversor de nota para conceito",
         "concept": "elif com fronteiras e edge cases",
         "prompt": "Mini-projeto. Escreva `grade_letter(score)` que converte uma nota de 0 a 100 em conceito: 90-100 -> \"A\", 80-89 -> \"B\", 70-79 -> \"C\", 60-69 -> \"D\", abaixo de 60 -> \"F\". Mas há um caso negativo a tratar como QA: se a nota estiver FORA do intervalo válido (menor que 0 OU maior que 100), devolva \"invalido\". Pense em todos os valores de fronteira (-1, 0, 59, 60, 89, 90, 100, 101) antes de escrever — é exatamente onde um conversor de notas costuma quebrar.",
+        "concept_intro": "🧩 Conceito de QA antecipado: a CLÁUSULA DE GUARDA — checar o caso inválido PRIMEIRO e já sair com `return`, antes da lógica principal. É o jeito profissional de tratar entrada fora do esperado (notas fora de 0..100) sem aninhar tudo. Esse padrão de 'falhar cedo' volta muito quando você escreve testes.",
         "starter": "def grade_letter(score):\n    # 1) primeiro rejeite notas fora de 0..100\n    # 2) depois mapeie a nota para a letra com elif\n    ...",
         "hints": [
           "Trate o caso inválido PRIMEIRO, com um `if` no topo que devolve \"invalido\" e encerra a função. Assim o resto do código já pode assumir que a nota é válida.",
           "A condição de inválido junta dois testes com `or`: `score < 0 or score > 100`. Depois desça as faixas de A até F com `elif`.",
-          "Esqueleto: `if score < 0 or score > 100: return \"invalido\"` / `elif score >= 90: return \"A\"` / `elif score >= 80: return \"B\"` ... e por fim `else: return \"F\"`. Verifique se 90 dá \"A\" e 89 dá \"B\"."
+          "Primeiro valide (early return) se a nota está fora de 0–100. Depois desça as faixas com `elif`, da maior para a menor, terminando no `else`. Como cada teste só roda se o anterior falhou, basta checar o limite inferior de cada conceito."
         ],
         "tests": [
           {
@@ -603,6 +612,7 @@
         "title": "Pegando o terceiro item",
         "concept": "índice de lista",
         "prompt": "Em QA, você frequentemente precisa olhar uma posição específica de uma lista de resultados (ex: a terceira linha de um relatório). Lembre-se: o primeiro item está no índice 0.\n\nEscreva a função `get_third_item(items)` que recebe uma lista e retorna o ITEM que está na terceira posição. Você pode assumir que a lista sempre terá pelo menos três itens.",
+        "concept_intro": "🧩 Primeiro contato com ÍNDICE: cada item de uma lista tem uma posição, e ela começa em 0 — o 1º item é índice 0, o 2º é índice 1, e assim por diante. Essa contagem a partir do zero é fonte clássica de bug (o 'erro de um a mais'). O capítulo Listas explora isso a fundo; por ora, traduza 'terceira posição' para o índice certo.",
         "starter": "def get_third_item(items):\n    # retorne o item na terceira posição\n    ...\n",
         "tests": [
           {
@@ -617,7 +627,7 @@
         "hints": [
           "Lista começa a contar do zero. O 'terceiro' item NÃO está no índice 3.",
           "Para acessar um item por posição use colchetes: items[posição].",
-          "A terceira posição é o índice 2: `return items[2]`."
+          "Acesse a posição certa por índice — e lembre que o Python conta a partir do zero, então o 'terceiro' item não fica no índice 3."
         ],
         "xp": 10
       },
@@ -642,7 +652,7 @@
         "hints": [
           "Existe uma função embutida do Python que mede o tamanho de uma lista.",
           "`len()` recebe a lista como argumento e devolve a contagem.",
-          "Basta retornar o resultado: `return len(items)`."
+          "Existe uma função embutida que devolve o tamanho de uma lista. Devolva o resultado dela diretamente."
         ],
         "xp": 10
       },
@@ -653,6 +663,7 @@
         "title": "Somando posições pares",
         "concept": "range(len()) + índice",
         "prompt": "Junte dois conceitos: percorrer pelos índices com `range(len(...))` e acessar cada item pelo índice. Em QA, padrões 'um sim, um não' aparecem ao validar tabelas alternadas.\n\nEscreva a função `sum_at_even_indexes(numbers)` que retorna a soma apenas dos números que estão em índices PARES (0, 2, 4, ...). Pense nos edge cases: uma lista vazia soma 0; uma lista com um único item soma esse item (índice 0 é par).",
+        "concept_intro": "🧩 Padrão antecipado: percorrer a lista PELOS ÍNDICES com `range(len(...))` — `len(...)` diz quantos itens existem e `range` gera as posições 0, 1, 2… para acessar `numbers[i]`. É a ponte entre o `for` que você viu em Loops e o acesso por posição. Foque em decidir quais índices são pares.",
         "starter": "def sum_at_even_indexes(numbers):\n    total = 0\n    # percorra os índices e some os pares\n    ...\n    return total\n",
         "tests": [
           {
@@ -671,7 +682,7 @@
         "hints": [
           "Você precisa do ÍNDICE (não só do valor) para saber se a posição é par. `range(len(numbers))` te dá os índices.",
           "Um índice é par quando `i % 2 == 0`. Acesse o valor com `numbers[i]`.",
-          "Dentro do for: `if i % 2 == 0: total += numbers[i]`."
+          "Percorra os ÍNDICES da lista (não os valores). Para cada índice, teste se ele é par (resto da divisão por 2 igual a zero) e, nesse caso, some ao acumulador o elemento naquela posição."
         ],
         "xp": 15
       },
@@ -704,7 +715,7 @@
         "hints": [
           "Assim que encontrar o primeiro negativo, você não precisa continuar olhando o resto.",
           "Um `return i` dentro do loop encerra a função imediatamente devolvendo aquele índice.",
-          "Se o loop terminar sem achar nada, a última linha `return -1` cobre o caso negativo."
+          "Se o loop percorrer a lista inteira sem encontrar nenhum negativo, devolva o valor-sentinela combinado no enunciado para sinalizar 'não achei'."
         ],
         "xp": 15
       },
@@ -750,7 +761,7 @@
         "hints": [
           "Crie uma lista vazia e vá adicionando (`append`) só os itens que não são `None`. Para testar use `if s is not None`.",
           "Depois de filtrar, o método `.sort()` ordena a lista no lugar (in-place), em ordem crescente.",
-          "Esqueleto: dentro do for `if s is not None: cleaned.append(s)`; depois do for `cleaned.sort()`; por fim `return cleaned`."
+          "Em três etapas: percorra filtrando para uma nova lista só os valores que não são None; depois ordene essa lista com o método de ordenação nativo; por fim devolva-a."
         ],
         "xp": 30
       },
@@ -808,7 +819,7 @@
         "hints": [
           "Você precisa devolver o texto com um caractere de aspas duplas antes e outro depois. Pense: o caractere de aspas duplas pode ser só mais um caractere dentro de uma string.",
           "Se você delimitar sua string com aspas SIMPLES (apostrofo), pode colocar aspas DUPLAS livremente dentro dela sem dar erro. Uma f-string com aspas simples também funciona: f'...{variavel}...'.",
-          "O esqueleto é: return f'\"{text}\"' — note as aspas simples delimitando a f-string e as aspas duplas como conteúdo, com {text} no meio."
+          "Use uma f-string para embutir o texto. Como o resultado precisa de aspas DUPLAS em volta, delimite a f-string com aspas SIMPLES e ponha as duplas como conteúdo, com o campo de substituição no meio."
         ],
         "xp": 10
       },
@@ -841,7 +852,7 @@
         "hints": [
           "Existem dois ajustes a fazer: tirar espaços das pontas e baixar a caixa (maiúsculas viram minúsculas). Cada um tem um método de string próprio.",
           "`.strip()` remove espaços do começo e do fim; `.lower()` deixa tudo minúsculo. Você pode encadear: primeiro um, depois o outro, na mesma linha.",
-          "O esqueleto é: return username.strip().lower() — repare na ordem encadeada com o ponto."
+          "Duas transformações encadeadas, na ordem certa: primeiro remova os espaços das pontas, depois passe para minúsculas. Métodos de string podem ser ligados em sequência com ponto."
         ],
         "xp": 15
       },
@@ -868,142 +879,6 @@
           "Um teste de borda forte é usar um nome em minúsculas para flagrar quem chama .upper() no nome, e um nome vazio: assert format_test_result('', False) == '[FALHOU] '. Junte 3+ asserts cobrindo passou, falhou e borda."
         ],
         "xp": 30
-      }
-    ]
-  },
-  "Loops Aninhados": {
-    "title": "Loops Aninhados",
-    "exercises": [
-      {
-        "id": "nested-loops-n1-count-cells",
-        "level": 1,
-        "mode": "write_code",
-        "title": "Contar células da grade",
-        "concept": "loop dentro de loop",
-        "prompt": "Uma grade 2D é uma lista de listas, onde cada lista interna é uma linha. Escreva a função `count_cells(grid)` que percorre TODAS as células (cada item de cada linha) usando um loop dentro de outro loop e devolve quantas células existem no total.\n\nMentalidade QA: não conte as linhas — conte cada célula. E pense no caso vazio: uma grade sem linhas tem zero células, mas uma grade com uma linha vazia (`[[]]`) também tem zero células. Sua função precisa acertar os dois.",
-        "starter": "def count_cells(grid):\n    total = 0\n    # loop externo: percorre cada linha (row) da grade\n    # loop interno: percorre cada célula (cell) da linha\n    ...\n    return total\n",
-        "hints": [
-          "Você precisa de DOIS loops, um dentro do outro: o de fora pega cada `row` em `grid`, o de dentro pega cada `cell` em `row`.",
-          "A cada célula visitada pelo loop interno, some 1 em `total`. Não some no loop externo — senão você estará contando linhas, não células.",
-          "Esqueleto: `for row in grid:` e dentro dele `for cell in row:` seguido de `total += 1`. Comece `total = 0` antes de tudo e devolva no fim."
-        ],
-        "xp": 10,
-        "tests": [
-          {
-            "call": "count_cells([[1, 2, 3], [4, 5, 6]])",
-            "expect": 6
-          },
-          {
-            "call": "count_cells([[7]])",
-            "expect": 1
-          },
-          {
-            "call": "count_cells([])",
-            "expect": 0
-          },
-          {
-            "call": "count_cells([[]])",
-            "expect": 0
-          }
-        ]
-      },
-      {
-        "id": "nested-loops-n2-count-matches",
-        "level": 2,
-        "mode": "write_code",
-        "title": "Contar ocorrências numa grade",
-        "concept": "loop aninhado com condição",
-        "prompt": "Combinando loops aninhados com uma condição: escreva `count_matches(grid, target)` que percorre toda a grade 2D e devolve quantas células são IGUAIS a `target`.\n\nMentalidade QA: teste o caso em que o alvo nunca aparece (resultado 0) e o caso da grade vazia (também 0). Não suponha que o alvo é sempre número — ele pode ser uma string.",
-        "starter": "def count_matches(grid, target):\n    count = 0\n    # percorra cada célula com dois loops\n    # quando a célula for igual a target, incremente count\n    ...\n    return count\n",
-        "hints": [
-          "Reaproveite a estrutura de dois loops do exercício anterior, mas agora some 1 só quando uma condição for verdadeira.",
-          "Dentro do loop interno, use `if cell == target:` antes de incrementar — assim você só conta os que batem.",
-          "Esqueleto: `for row in grid:` → `for cell in row:` → `if cell == target: count += 1`. Comece com `count = 0`."
-        ],
-        "xp": 15,
-        "tests": [
-          {
-            "call": "count_matches([[1, 0, 1], [0, 1, 0]], 1)",
-            "expect": 3
-          },
-          {
-            "call": "count_matches([['a', 'b'], ['a', 'a']], 'a')",
-            "expect": 3
-          },
-          {
-            "call": "count_matches([[1, 1], [1, 1]], 0)",
-            "expect": 0
-          },
-          {
-            "call": "count_matches([], 5)",
-            "expect": 0
-          }
-        ]
-      },
-      {
-        "id": "nested-loops-n3-validate-grid",
-        "level": 3,
-        "mode": "write_code",
-        "title": "Mini-projeto: validador de grade",
-        "concept": "validar lista aninhada 2D",
-        "prompt": "Mini-projeto com mentalidade de quem vai quebrar a grade. Escreva `validate_grid(grid)` que verifica se uma grade 2D está bem formada e devolve uma LISTA de mensagens de erro (lista vazia se estiver tudo certo).\n\nRegras de validação:\n1. Toda linha deve ter o MESMO número de colunas da primeira linha (`grid[0]`). Se a linha `r` tiver tamanho diferente, adicione a mensagem exatamente neste formato: `\"linha {r} tem {n} colunas, esperado {largura}\"` (use o índice da linha, o tamanho real e a largura esperada).\n2. Toda célula deve ser um inteiro. Se a célula na posição `(r, c)` não for `int`, adicione: `\"celula ({r}, {c}) nao e inteiro\"`.\n\nEdge cases que você DEVE acertar: grade vazia `[]` retorna lista vazia (nada a validar); grade só com linhas vazias `[[], []]` é válida (todas têm 0 colunas). Dica: `isinstance(cell, int)` diz se algo é inteiro.",
-        "starter": "def validate_grid(grid):\n    errors = []\n    if not grid:\n        return errors\n    width = len(grid[0])\n    # percorra cada linha com seu índice r e cada célula com seu índice c\n    # verifique o tamanho da linha e o tipo de cada célula\n    ...\n    return errors\n",
-        "hints": [
-          "Para ter o índice junto com o item no loop, use `enumerate`: `for r, row in enumerate(grid):` te dá o número da linha e a linha; faça o mesmo com `for c, cell in enumerate(row):`.",
-          "Cheque a largura no loop externo (`if len(row) != width:`) e o tipo no loop interno (`if not isinstance(cell, int):`). Monte as mensagens com f-strings usando os índices.",
-          "Esqueleto:\n```\nfor r, row in enumerate(grid):\n    if len(row) != width:\n        errors.append(f\"linha {r} tem {len(row)} colunas, esperado {width}\")\n    for c, cell in enumerate(row):\n        if not isinstance(cell, int):\n            errors.append(f\"celula ({r}, {c}) nao e inteiro\")\n```\nLembre do `if not grid: return errors` no começo."
-        ],
-        "xp": 30,
-        "tests": [
-          {
-            "call": "validate_grid([[1, 2], [3, 4]])",
-            "expect": []
-          },
-          {
-            "call": "validate_grid([])",
-            "expect": []
-          },
-          {
-            "call": "validate_grid([[], []])",
-            "expect": []
-          },
-          {
-            "call": "validate_grid([[1, 2], [3]])",
-            "expect": [
-              "linha 1 tem 1 colunas, esperado 2"
-            ]
-          },
-          {
-            "call": "validate_grid([[1, \"x\"]])",
-            "expect": [
-              "celula (0, 1) nao e inteiro"
-            ]
-          }
-        ]
-      },
-      {
-        "id": "nested-loops-n3-test-diagonal",
-        "level": 3,
-        "mode": "write_test",
-        "title": "Você testa: soma da diagonal",
-        "concept": "escrever testes para grade 2D",
-        "prompt": "Agora VOCÊ é o QA. A função `sum_diagonal(grid)` já está pronta (read-only): ela recebe uma grade quadrada (lista de listas) e devolve a soma da diagonal principal — os elementos `grid[0][0]`, `grid[1][1]`, `grid[2][2]`, e assim por diante.\n\nEscreva ao menos 3 testes com `assert` que comprovem que a função está correta. Pense como alguém que quer QUEBRAR a função: inclua uma grade 1x1 (caso mínimo), uma grade 2x2 e uma 3x3. Bons testes aqui pegam versões com bug que somam a linha errada, a coluna errada, ou a outra diagonal.",
-        "starter": "# A função sum_diagonal(grid) já existe e está correta.\n# Escreva seus testes abaixo usando assert.\n# Exemplo de formato: assert sum_diagonal([[5]]) == 5\n\nassert sum_diagonal(...) == ...\n",
-        "hints": [
-          "A diagonal principal pega um elemento por linha avançando também na coluna: posição (0,0), depois (1,1), depois (2,2). Calcule à mão o que cada grade deve somar.",
-          "Use pelo menos três tamanhos diferentes. O caso 1x1 (`[[5]]`) é o mínimo e expõe bugs de índice; o 3x3 expõe quem soma a linha ou a coluna inteira em vez da diagonal.",
-          "Modelo: `assert sum_diagonal([[1, 2], [3, 4]]) == 5` (1 + 4). Some você mesmo a diagonal de uma grade 3x3 como `[[1,2,3],[4,5,6],[7,8,9]]` (1 + 5 + 9) e escreva o assert."
-        ],
-        "xp": 30,
-        "target_func": "sum_diagonal",
-        "reference_impl": "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        total += grid[i][i]\n    return total\n",
-        "mutants": [
-          "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        for cell in grid[i]:\n            total += cell\n    return total\n",
-          "def sum_diagonal(grid):\n    total = 0\n    n = len(grid)\n    for i in range(n):\n        total += grid[i][n - 1 - i]\n    return total\n",
-          "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        total += grid[0][i]\n    return total\n",
-          "def sum_diagonal(grid):\n    total = 0\n    for i in range(len(grid)):\n        total += grid[i][0]\n    return total\n"
-        ],
-        "min_tests": 3
       }
     ]
   },
@@ -1039,7 +914,7 @@
         "hints": [
           "Uma função pura não usa `print`: ela termina com `return <valor>`. Quem chamou a função decide o que fazer com o valor.",
           "Para saber se um número é par, olhe o resto da divisão por 2. O operador resto em Python é `%`. Se `n % 2` for igual a 0, o número é par.",
-          "O esqueleto é: `return n % 2 == 0`. Note que `n % 2 == 0` já é uma expressão booleana (True/False), então você pode devolvê-la direto, sem `if/else`."
+          "Um número é par quando o resto da divisão por 2 é zero. Essa comparação já é um booleano (True/False), então pode ser devolvida diretamente, sem `if/else`."
         ],
         "xp": 10
       },
@@ -1068,7 +943,7 @@
         "hints": [
           "Comece por `full_name`: ela só precisa devolver `first` + um espaço + `last`. Resolva e teste essa primeiro, isolada.",
           "Em `greet`, NÃO repita a junção de nome e sobrenome. Chame `full_name(first, last)` lá dentro e encaixe o resultado no texto.",
-          "Esqueleto de `greet`: `return \"Olá, \" + full_name(first, last) + \"!\"`. Repare que `greet` depende de `full_name` já existir e funcionar — por isso testamos a função pequena antes."
+          "Em `greet`, monte a saudação concatenando o texto de abertura, o resultado de CHAMAR `full_name`, e o fecho — sem reescrever a junção do nome. Como `greet` depende de `full_name` já funcionar, testamos a função pequena primeiro."
         ],
         "xp": 15
       },
@@ -1105,7 +980,7 @@
         "hints": [
           "Trate o caso negativo PRIMEIRO. Um `if` que verifica `percent < 0 or percent > 100` e faz `return None` interrompe a função antes de calcular qualquer coisa (isso se chama early return).",
           "Para o cálculo: o valor do desconto é `price * percent / 100`. O preço final é `price` menos esse desconto. Não esqueça de envolver o resultado em `round(..., 2)`.",
-          "Esqueleto:\n`if percent < 0 or percent > 100:`\n`    return None`\n`discount = price * percent / 100`\n`return round(price - discount, 2)`\nTeste os limites 0, 100, -5 e 150 — são exatamente onde bugs costumam se esconder."
+          "Comece validando: devolva None de imediato quando o percentual está fora de 0–100. Depois calcule o valor do desconto a partir do preço e do percentual, subtraia-o do preço e arredonde para 2 casas antes de devolver. Teste os limites 0, 100, -5 e 150."
         ],
         "xp": 30
       },
@@ -1167,7 +1042,7 @@
         "hints": [
           "O operador and so resulta em True quando AMBOS os lados sao True. Lembre da tabela-verdade do and.",
           "Voce nao precisa de if/else. O proprio resultado de logged_in and has_subscription ja e um booleano.",
-          "O corpo cabe em uma linha: return logged_in and has_subscription"
+          "O usuário está ativo só quando AS DUAS condições são verdadeiras ao mesmo tempo. Qual operador booleano exige que ambos os lados sejam verdadeiros? Devolva essa expressão direto."
         ],
         "xp": 10
       },
@@ -1204,7 +1079,7 @@
         "hints": [
           "Sao duas partes ligadas por and: a parte da permissao (admin ou dono) e a parte do banimento (nao banido).",
           "not banned vira True quando banned e False. Use parenteses em (is_admin or is_owner) para o or rodar antes do and.",
-          "Esqueleto: return (is_admin or is_owner) and not banned"
+          "Combine: ter acesso exige ser admin OU dono, E ao mesmo tempo NÃO estar banido. Cuide da precedência com parênteses ao redor do 'ou' e aplique a negação no banido."
         ],
         "xp": 15
       },
@@ -1241,7 +1116,7 @@
         "hints": [
           "Calcule cada regra separadamente em uma variavel booleana antes de junta-las; fica mais facil de ler e testar.",
           "len(username) > 0 verifica o vazio; len(password) >= 6 o tamanho minimo; ' ' not in username pega o espaco.",
-          "Junte tudo: return has_user and has_pass and no_spaces"
+          "Calcule cada regra numa variável booleana (usuário não-vazio; senha com o tamanho mínimo; sem espaço no usuário) e devolva a combinação das três com o operador que exige TODAS verdadeiras."
         ],
         "xp": 30
       },
@@ -1303,7 +1178,7 @@
         "hints": [
           "Voce precisa olhar TODA celula. Uma lista aninhada pede dois loops: um para as linhas (rows) e, dentro dele, outro para as celulas (cells) daquela linha.",
           "Crie um contador antes dos loops (total = 0). Dentro do loop interno, compare cell == mark e, quando for verdade, faca total += 1.",
-          "Esqueleto: for row in board: / for cell in row: / if cell == mark: total += 1. Depois dos loops, return total. Tabuleiro vazio nunca entra no if, entao total continua 0."
+          "Você já tem a ideia dos dois loops aninhados. Dentro deles, compare cada célula com a marca procurada e, quando bater, incremente um contador iniciado em zero. Devolva o total depois de varrer tudo."
         ],
         "xp": 10
       },
@@ -1336,7 +1211,7 @@
         "hints": [
           "A ideia e: se voce achar QUALQUER celula vazia, ja sabe a resposta. Nao precisa terminar de olhar o resto.",
           "Use os dois loops para percorrer cada cell. Dentro, teste if cell == '' e, nesse momento, faca return False de imediato.",
-          "Esqueleto: for row in board: / for cell in row: / if cell == '': return False. So depois de sair dos dois loops (nada vazio encontrado) e que voce faz return True."
+          "Varra todas as células procurando uma vazia. Assim que achar UMA vazia, pare e devolva que NÃO está cheio. Só devolva que está cheio se terminar a varredura sem encontrar nenhuma vazia (early return)."
         ],
         "xp": 10
       },
@@ -1373,7 +1248,7 @@
         "hints": [
           "Sao 8 jeitos de ganhar: 3 linhas, 3 colunas e 2 diagonais. Em vez de escrever 8 ifs gigantes, monte uma lista de listas, onde cada sublista e um trio de celulas a checar.",
           "Para as colunas, a coluna c e [board[0][c], board[1][c], board[2][c]]. As diagonais sao [board[0][0], board[1][1], board[2][2]] e [board[0][2], board[1][1], board[2][0]].",
-          "Ao testar cada trio: if line[0] != '' and line[0] == line[1] == line[2]: return line[0]. O 'line[0] != \"\"' e o que impede tres vazios de falsamente vencerem. Se nenhum trio passar, return None."
+          "Para cada trio montado, há vitória quando as três células são iguais E diferentes de vazio — essa checagem de vazio é o que impede três espaços em branco de 'vencerem'. Devolva a marca do vencedor ao achar; se nenhum trio fechar, devolva None."
         ],
         "xp": 15
       },
@@ -1403,8 +1278,169 @@
       }
     ]
   },
-  "Dictionaries": {
-    "title": "Dictionaries",
+  "Loops Aninhadas": {
+    "title": "Loops Aninhadas",
+    "exercises": [
+      {
+        "id": "loops-nested-n1-count-cells",
+        "level": 1,
+        "mode": "write_code",
+        "title": "Contar células da grade",
+        "concept": "loop dentro de loop",
+        "prompt": "Uma grade 2D é uma lista de listas, onde cada lista interna é uma linha. Escreva a função `count_cells(grid)` que percorre TODAS as células (cada item de cada linha) usando um loop dentro de outro loop e devolve quantas células existem no total.\n\nMentalidade QA: não conte as linhas — conte cada célula. E pense no caso vazio: uma grade sem linhas tem zero células, mas uma grade com uma linha vazia (`[[]]`) também tem zero células. Sua função precisa acertar os dois.",
+        "starter": "def count_cells(grid):\n    total = 0\n    # loop externo: percorre cada linha (row) da grade\n    # loop interno: percorre cada célula (cell) da linha\n    ...\n    return total\n",
+        "hints": [
+          "Você precisa de DOIS loops, um dentro do outro: o de fora pega cada `row` em `grid`, o de dentro pega cada `cell` em `row`.",
+          "A cada célula visitada pelo loop interno, some 1 em `total`. Não some no loop externo — senão você estará contando linhas, não células.",
+          "Junte as peças que você já viu: inicialize um contador em 0 antes dos loops e devolva-o no fim. O corpo do loop interno é UMA linha só — o incremento da dica anterior. Monte você mesmo, sem copiar pronto."
+        ],
+        "xp": 10,
+        "tests": [
+          {
+            "call": "count_cells([[1, 2, 3], [4, 5, 6]])",
+            "expect": 6
+          },
+          {
+            "call": "count_cells([[7]])",
+            "expect": 1
+          },
+          {
+            "call": "count_cells([])",
+            "expect": 0
+          },
+          {
+            "call": "count_cells([[]])",
+            "expect": 0
+          }
+        ]
+      },
+      {
+        "id": "loops-nested-n2-faulty-sensors",
+        "level": 2,
+        "mode": "write_code",
+        "title": "Mapa de sensores com defeito (matriz irregular)",
+        "concept": "loops aninhados em matriz jagged + condição",
+        "prompt": "Validando sensores dispostos numa matriz, valor negativo = sensor com defeito. Escreva `find_faulty_sensors(matrix)` que RETORNA a lista de coordenadas `[linha, coluna]` de todos os valores < 0. As linhas podem ter tamanhos diferentes (matriz irregular/jagged) — sua varredura precisa aguentar isso sem estourar índice. Caso-limite: matriz vazia ou linha vazia → `[]`.",
+        "starter": "def find_faulty_sensors(matrix):\n    # varra cada linha pelo SEU tamanho (jagged) e colete os [r, c] negativos\n    ...\n",
+        "tests": [
+          {
+            "call": "find_faulty_sensors([[1, -2, 3], [-4, 5], [6, 7, -8, 9]])",
+            "expect": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                0
+              ],
+              [
+                2,
+                2
+              ]
+            ]
+          },
+          {
+            "call": "find_faulty_sensors([[0, 1, 2], [3, 4]])",
+            "expect": []
+          },
+          {
+            "call": "find_faulty_sensors([[-1, -2], [], [-3]])",
+            "expect": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                0
+              ]
+            ]
+          },
+          {
+            "call": "find_faulty_sensors([])",
+            "expect": []
+          }
+        ],
+        "hints": [
+          "Para matriz jagged, use `range(len(matrix[r]))` (o tamanho DA linha r), não um número fixo de colunas.",
+          "No loop interno, quando `matrix[r][c]` for negativo, guarde a posição como LISTA `[r, c]` (nunca tupla — o corretor compara com array) na sua lista de defeitos.",
+          "Uma linha vazia `[]` simplesmente não entra no loop interno — não precisa de tratamento especial."
+        ],
+        "xp": 15
+      },
+      {
+        "id": "loops-nested-n3-validate-grid",
+        "level": 3,
+        "mode": "write_code",
+        "title": "Mini-projeto: validador de grade",
+        "concept": "validar lista aninhada 2D",
+        "prompt": "Mini-projeto com mentalidade de quem vai quebrar a grade. Escreva `validate_grid(grid)` que verifica se uma grade 2D está bem formada e devolve uma LISTA de mensagens de erro (lista vazia se estiver tudo certo).\n\nRegras de validação:\n1. Toda linha deve ter o MESMO número de colunas da primeira linha (`grid[0]`). Se a linha `r` tiver tamanho diferente, adicione a mensagem exatamente neste formato: `\"linha {r} tem {n} colunas, esperado {largura}\"` (use o índice da linha, o tamanho real e a largura esperada).\n2. Toda célula deve ser um inteiro. Se a célula na posição `(r, c)` não for `int`, adicione: `\"celula ({r}, {c}) nao e inteiro\"`.\n\nEdge cases que você DEVE acertar: grade vazia `[]` retorna lista vazia (nada a validar); grade só com linhas vazias `[[], []]` é válida (todas têm 0 colunas). Dica: `isinstance(cell, int)` diz se algo é inteiro.",
+        "starter": "def validate_grid(grid):\n    errors = []\n    if not grid:\n        return errors\n    width = len(grid[0])\n    # percorra cada linha com seu índice r e cada célula com seu índice c\n    # verifique o tamanho da linha e o tipo de cada célula\n    ...\n    return errors\n",
+        "hints": [
+          "Para ter o índice junto com o item no loop, use `enumerate`: `for r, row in enumerate(grid):` te dá o número da linha e a linha; faça o mesmo com `for c, cell in enumerate(row):`.",
+          "Cheque a largura no loop externo (`if len(row) != width:`) e o tipo no loop interno (`if not isinstance(cell, int):`). Monte as mensagens com f-strings usando os índices.",
+          "Junte as peças: primeiro trate a grade vazia (devolva a lista de erros ainda vazia). No loop externo (com `enumerate`) compare o tamanho da linha com a largura esperada; no interno, cheque o tipo de cada célula. Monte cada mensagem com f-string usando os índices — escreva você mesmo."
+        ],
+        "xp": 30,
+        "tests": [
+          {
+            "call": "validate_grid([[1, 2], [3, 4]])",
+            "expect": []
+          },
+          {
+            "call": "validate_grid([])",
+            "expect": []
+          },
+          {
+            "call": "validate_grid([[], []])",
+            "expect": []
+          },
+          {
+            "call": "validate_grid([[1, 2], [3]])",
+            "expect": [
+              "linha 1 tem 1 colunas, esperado 2"
+            ]
+          },
+          {
+            "call": "validate_grid([[1, \"x\"]])",
+            "expect": [
+              "celula (0, 1) nao e inteiro"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "loops-nested-n3-matrix-overlap",
+        "level": 3,
+        "mode": "write_test",
+        "title": "Pense como QA: teste has_overlap (sobreposição em matriz)",
+        "concept": "Arrange/Act/Assert — um bom teste pega o bug (loops aninhados)",
+        "prompt": "A função `has_overlap(matrix_a, matrix_b)` já existe (read-only): devolve `True` se existir ALGUMA posição `[r][c]` onde ambas as matrizes têm 1, senão `False` (e `False` se alguma for vazia). Escreva pelo menos 3 testes `def test_*()` que chamam `has_overlap(...)` e PEGAM bugs: (1) sobreposição numa linha que não é a primeira; (2) 1s em ambas mas em posições DIFERENTES (não é overlap); (3) o caso-limite de matriz vazia. Um bom teste mata os 3 mutantes.",
+        "target_func": "has_overlap",
+        "reference_impl": "def has_overlap(matrix_a, matrix_b):\n    if not matrix_a or not matrix_b:\n        return False\n    for r in range(len(matrix_a)):\n        for c in range(len(matrix_a[r])):\n            if matrix_a[r][c] == 1 and matrix_b[r][c] == 1:\n                return True\n    return False\n",
+        "mutants": [
+          "def has_overlap(matrix_a, matrix_b):\n    for r in range(len(matrix_a)):\n        for c in range(len(matrix_a[r])):\n            if matrix_a[r][c] == 1 and matrix_b[r][c] == 1:\n                return True\n    return False\n",
+          "def has_overlap(matrix_a, matrix_b):\n    if not matrix_a or not matrix_b:\n        return False\n    has_a = False\n    has_b = False\n    for r in range(len(matrix_a)):\n        for c in range(len(matrix_a[r])):\n            if matrix_a[r][c] == 1:\n                has_a = True\n            if matrix_b[r][c] == 1:\n                has_b = True\n    return has_a and has_b\n",
+          "def has_overlap(matrix_a, matrix_b):\n    if not matrix_a or not matrix_b:\n        return False\n    for r in range(len(matrix_a)):\n        for c in range(len(matrix_a[r])):\n            if matrix_a[r][c] == 1 and matrix_b[r][c] == 1:\n                return True\n        return False\n    return False\n"
+        ],
+        "min_tests": 3,
+        "starter": "# A função has_overlap já existe e está correta.\n# Escreva seus testes abaixo (def test_*), pensando nos 3 bugs.\ndef test_overlap_em_linha_posterior():\n    ...\n",
+        "hints": [
+          "Pra matar o mutante que checa só a 1ª linha: ponha o overlap numa linha de baixo, ex. `has_overlap([[0],[1]], [[0],[1]])` deve ser True.",
+          "Pra matar o mutante 'tem 1 em qualquer lugar': 1 em A e 1 em B mas em posições diferentes deve dar False, ex. `has_overlap([[1,0]], [[0,1]])`.",
+          "Pra matar o mutante sem guarda de vazio: teste `has_overlap([[1]], [])` — deve ser False (e o mutante quebra)."
+        ],
+        "xp": 30
+      }
+    ]
+  },
+  "Dicionários": {
+    "title": "Dicionários",
     "exercises": [
       {
         "id": "dictionaries-n1-get-value",
@@ -1427,7 +1463,7 @@
         "hints": [
           "Acessar com `d[key]` direto quebra (KeyError) quando a chave nao existe. Voce precisa checar antes.",
           "O operador `in` testa se uma chave esta no dicionario: `if key in d:`. Use isso para decidir entre devolver o valor ou `None`.",
-          "Esqueleto: `if key in d:` entao `return d[key]`; fora do if, `return None`."
+          "Antes de acessar a chave, teste se ela existe no dicionário (operador de pertencimento). Se existir, devolva o valor correspondente; senão, devolva None — assim você evita o KeyError."
         ],
         "xp": 10
       },
@@ -1456,7 +1492,7 @@
         "hints": [
           "Comece com um dicionario vazio `counts = {}` e percorra a lista com `for s in statuses:`.",
           "Para cada `s`: se ja esta em `counts`, some 1; se e a primeira vez, comece em 1. O `in` ajuda a distinguir os dois casos.",
-          "Dentro do loop: `if s in counts: counts[s] += 1` senao `counts[s] = 1`. A lista vazia nunca entra no loop, entao `counts` continua `{}`."
+          "Use um dicionário acumulador. Dentro do loop, para cada status: se ele JÁ é chave, incremente sua contagem; se é a primeira vez, registre-o começando em 1."
         ],
         "xp": 15
       },
@@ -1492,7 +1528,7 @@
         "hints": [
           "Crie um `result = {}` novo (nao devolva `defaults` direto, senao voce altera o original). Iterar com `for k in d:` da as chaves.",
           "Primeiro copie todas as chaves de `defaults` para `result`. Depois passe por `overrides` gravando por cima - atribuir uma chave que ja existe a substitui, e uma chave nova e adicionada.",
-          "Dois loops: `for k in defaults: result[k] = defaults[k]` e depois `for k in overrides: result[k] = overrides[k]`. O segundo loop resolve sobrescrita E chave nova de uma vez."
+          "Crie um dicionário novo e preencha em dois passos: primeiro copie todas as chaves dos defaults; depois passe pelos overrides, que vão sobrescrever as repetidas e adicionar as novas. Iterar um dicionário te dá as chaves."
         ],
         "xp": 30
       },

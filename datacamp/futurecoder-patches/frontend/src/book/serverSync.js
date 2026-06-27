@@ -56,16 +56,31 @@ export async function saveCodeToProject(slug, code) {
 
 // Progresso do painel "Pratique": espelha cada exercicio concluido no SQLite.
 // Best-effort; a fonte de verdade local e o localStorage (PracticePanel).
-export async function savePracticeProgress(exerciseId, xp, mode) {
+export async function savePracticeProgress(exerciseId, xp, mode, code) {
   try {
     const r = await fetch("/api/practice-progress", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({exercise_id: exerciseId, xp: xp, mode: mode}),
+      body: JSON.stringify({exercise_id: exerciseId, xp: xp, mode: mode, code: code || ""}),
     });
-    return await r.json();
+    if (!r.ok) return {ok: false, error: `HTTP ${r.status}`};   // não engole 500/404
+    const json = await r.json();
+    return json && json.ok ? json : {ok: false, error: (json && json.error) || "resposta inválida"};
   } catch (e) {
-    return {ok: false};
+    return {ok: false, error: e.message || "rede indisponível"};
+  }
+}
+
+// GAP-5: recupera o checkpoint de código salvo no servidor (sobrevive à limpeza do
+// localStorage). Best-effort: se o backend estiver off, devolve lista vazia.
+export async function getPracticeProgress() {
+  try {
+    const r = await fetch("/api/practice-progress");
+    if (!r.ok) return {items: []};
+    const json = await r.json();
+    return json && json.items ? json : {items: []};
+  } catch (e) {
+    return {items: []};
   }
 }
 
