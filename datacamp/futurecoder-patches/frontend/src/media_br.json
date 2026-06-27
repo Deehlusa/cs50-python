@@ -1,99 +1,243 @@
 {
   "_meta": "Recursos por modulo do futurecoder. URLs validadas por HTTP em 2026-06-25. Videos estilo curto/moderno (Fireship/Indently/Tech With Tim). Mini-projeto por modulo p/ fixar.",
   "O Shell": {
-    "video": {"label": "Indently — Python (curtos)", "url": "https://www.youtube.com/@Indently"},
+    "video": {
+      "label": "Indently — Python (curtos)",
+      "url": "https://www.youtube.com/@Indently"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — interpretador", "url": "https://docs.python.org/pt-br/3/tutorial/interpreter.html"},
-      {"label": "GitHub — Python exercises (zhiwehu)", "url": "https://github.com/zhiwehu/Python-programming-exercises"}
+      {
+        "label": "docs.python.org (PT) — interpretador",
+        "url": "https://docs.python.org/pt-br/3/tutorial/interpreter.html"
+      },
+      {
+        "label": "GitHub — Python exercises (zhiwehu)",
+        "url": "https://github.com/zhiwehu/Python-programming-exercises"
+      }
     ],
-    "mini_project": {"title": "Calculadora no shell", "goal": "Usar o shell como calculadora e prever cada resultado antes de rodar (preve -> roda -> compara)."}
+    "mini_project": {
+      "title": "Calculadora no shell",
+      "goal": "Usar o shell como calculadora e prever cada resultado antes de rodar (preve -> roda -> compara)."
+    }
   },
   "Básicos de Strings": {
-    "video": {"label": "Indently — strings", "url": "https://www.youtube.com/@Indently"},
+    "video": {
+      "label": "Indently — strings",
+      "url": "https://www.youtube.com/@Indently"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — strings", "url": "https://docs.python.org/pt-br/3/tutorial/introduction.html#strings"},
-      {"label": "GitHub — awesome python projects", "url": "https://github.com/garimasingh128/awesome-python-projects"}
+      {
+        "label": "docs.python.org (PT) — strings",
+        "url": "https://docs.python.org/pt-br/3/tutorial/introduction.html#strings"
+      },
+      {
+        "label": "GitHub — awesome python projects",
+        "url": "https://github.com/garimasingh128/awesome-python-projects"
+      }
     ],
-    "mini_project": {"title": "Formatador de nome", "goal": "Receber ' ana SILVA ' e devolver 'Ana Silva' (strip + title)."}
+    "mini_project": {
+      "title": "Formatador de nome",
+      "goal": "Receber ' ana SILVA ' e devolver 'Ana Silva' (strip + title)."
+    }
   },
   "Variáveis": {
-    "video": {"label": "Tech With Tim — Python p/ iniciantes", "url": "https://www.youtube.com/@TechWithTim"},
+    "video": {
+      "label": "Tech With Tim — Python p/ iniciantes",
+      "url": "https://www.youtube.com/@TechWithTim"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — numeros", "url": "https://docs.python.org/pt-br/3/tutorial/introduction.html#numbers"},
-      {"label": "GitHub — 30 Days of Python", "url": "https://github.com/Asabeneh/30-Days-Of-Python"}
+      {
+        "label": "docs.python.org (PT) — numeros",
+        "url": "https://docs.python.org/pt-br/3/tutorial/introduction.html#numbers"
+      },
+      {
+        "label": "GitHub — 30 Days of Python",
+        "url": "https://github.com/Asabeneh/30-Days-Of-Python"
+      }
     ],
-    "mini_project": {"title": "Conversor de unidades", "goal": "Converter texto '37.5' (str) para float e somar — pegar o bug de tipo."}
+    "mini_project": {
+      "title": "Conversor de unidades",
+      "goal": "Converter texto '37.5' (str) para float e somar — pegar o bug de tipo."
+    }
   },
   "Loops For": {
-    "video": {"label": "Indently — loops", "url": "https://www.youtube.com/@Indently"},
+    "video": {
+      "label": "Indently — loops",
+      "url": "https://www.youtube.com/@Indently"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — for", "url": "https://docs.python.org/pt-br/3/tutorial/controlflow.html#for-statements"},
-      {"label": "GitHub — Python exercises", "url": "https://github.com/zhiwehu/Python-programming-exercises"}
+      {
+        "label": "docs.python.org (PT) — for",
+        "url": "https://docs.python.org/pt-br/3/tutorial/controlflow.html#for-statements"
+      },
+      {
+        "label": "GitHub — Python exercises",
+        "url": "https://github.com/zhiwehu/Python-programming-exercises"
+      }
     ],
-    "mini_project": {"title": "Contador de vogais", "goal": "Contar quantas vogais ha numa frase, percorrendo caractere a caractere."}
+    "mini_project": {
+      "title": "Contador de vogais",
+      "goal": "Contar quantas vogais ha numa frase, percorrendo caractere a caractere."
+    }
   },
   "Instruções If": {
-    "video": {"label": "Tech With Tim — condicionais", "url": "https://www.youtube.com/@TechWithTim"},
+    "video": {
+      "label": "Tech With Tim — condicionais",
+      "url": "https://www.youtube.com/@TechWithTim"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — if", "url": "https://docs.python.org/pt-br/3/tutorial/controlflow.html#if-statements"},
-      {"label": "GitHub — project-based-learning", "url": "https://github.com/practical-tutorials/project-based-learning"}
+      {
+        "label": "docs.python.org (PT) — if",
+        "url": "https://docs.python.org/pt-br/3/tutorial/controlflow.html#if-statements"
+      },
+      {
+        "label": "GitHub — project-based-learning",
+        "url": "https://github.com/practical-tutorials/project-based-learning"
+      }
     ],
-    "mini_project": {"title": "Classificador de faixa", "goal": "Dado um numero, dizer faixa (negativo/zero/positivo) — testar os 3 ramos e a fronteira."}
+    "mini_project": {
+      "title": "Classificador de faixa",
+      "goal": "Dado um numero, dizer faixa (negativo/zero/positivo) — testar os 3 ramos e a fronteira."
+    }
   },
   "Listas": {
-    "video": {"label": "Indently — listas", "url": "https://www.youtube.com/@Indently"},
+    "video": {
+      "label": "Indently — listas",
+      "url": "https://www.youtube.com/@Indently"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — listas", "url": "https://docs.python.org/pt-br/3/tutorial/introduction.html#lists"},
-      {"label": "GitHub — awesome python projects", "url": "https://github.com/garimasingh128/awesome-python-projects"}
+      {
+        "label": "docs.python.org (PT) — listas",
+        "url": "https://docs.python.org/pt-br/3/tutorial/introduction.html#lists"
+      },
+      {
+        "label": "GitHub — awesome python projects",
+        "url": "https://github.com/garimasingh128/awesome-python-projects"
+      }
     ],
-    "mini_project": {"title": "Remover duplicatas", "goal": "Remover repetidos de uma lista MANTENDO a ordem original."}
+    "mini_project": {
+      "title": "Remover duplicatas",
+      "goal": "Remover repetidos de uma lista MANTENDO a ordem original."
+    }
   },
-  "Mais sobre Strings": {
-    "video": {"label": "Indently — f-strings", "url": "https://www.youtube.com/@Indently"},
+  "Um Pouco Mais sobre Strings": {
+    "video": {
+      "label": "Indently — f-strings",
+      "url": "https://www.youtube.com/@Indently"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — metodos de string", "url": "https://docs.python.org/pt-br/3/library/stdtypes.html#string-methods"},
-      {"label": "GitHub — Python exercises", "url": "https://github.com/zhiwehu/Python-programming-exercises"}
+      {
+        "label": "docs.python.org (PT) — metodos de string",
+        "url": "https://docs.python.org/pt-br/3/library/stdtypes.html#string-methods"
+      },
+      {
+        "label": "GitHub — Python exercises",
+        "url": "https://github.com/zhiwehu/Python-programming-exercises"
+      }
     ],
-    "mini_project": {"title": "Validador de forca de senha", "goal": "Tamanho >= 8, tem maiuscula, numero e simbolo — pensar nos casos negativos (seu projeto da Semana 1)."}
+    "mini_project": {
+      "title": "Validador de forca de senha",
+      "goal": "Tamanho >= 8, tem maiuscula, numero e simbolo — pensar nos casos negativos (seu projeto da Semana 1)."
+    }
   },
-  "Loops Aninhados": {
-    "video": {"label": "Tech With Tim — nested loops", "url": "https://www.youtube.com/@TechWithTim"},
+  "Loops Aninhadas": {
+    "video": {
+      "label": "Tech With Tim — nested loops",
+      "url": "https://www.youtube.com/@TechWithTim"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — controle de fluxo", "url": "https://docs.python.org/pt-br/3/tutorial/controlflow.html"},
-      {"label": "GitHub — 30 Days of Python", "url": "https://github.com/Asabeneh/30-Days-Of-Python"}
+      {
+        "label": "docs.python.org (PT) — controle de fluxo",
+        "url": "https://docs.python.org/pt-br/3/tutorial/controlflow.html"
+      },
+      {
+        "label": "GitHub — 30 Days of Python",
+        "url": "https://github.com/Asabeneh/30-Days-Of-Python"
+      }
     ],
-    "mini_project": {"title": "Tabuada 2D", "goal": "Imprimir a tabuada de 1 a 5 como uma grade usando loop dentro de loop."}
+    "mini_project": {
+      "title": "Tabuada 2D",
+      "goal": "Imprimir a tabuada de 1 a 5 como uma grade usando loop dentro de loop."
+    }
   },
   "Funções": {
-    "video": {"label": "Fireship (Python in 100s) + Indently", "url": "https://www.youtube.com/c/Fireship"},
+    "video": {
+      "label": "Fireship (Python in 100s) + Indently",
+      "url": "https://www.youtube.com/c/Fireship"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — definir funcoes", "url": "https://docs.python.org/pt-br/3/tutorial/controlflow.html#defining-functions"},
-      {"label": "GitHub — project-based-learning", "url": "https://github.com/practical-tutorials/project-based-learning"}
+      {
+        "label": "docs.python.org (PT) — definir funcoes",
+        "url": "https://docs.python.org/pt-br/3/tutorial/controlflow.html#defining-functions"
+      },
+      {
+        "label": "GitHub — project-based-learning",
+        "url": "https://github.com/practical-tutorials/project-based-learning"
+      }
     ],
-    "mini_project": {"title": "Desconto (funcao pura) + 1 teste", "goal": "apply_discount(price, percent) SEM print/input; depois escreva 1 assert que pegue um bug."}
+    "mini_project": {
+      "title": "Desconto (funcao pura) + 1 teste",
+      "goal": "apply_discount(price, percent) SEM print/input; depois escreva 1 assert que pegue um bug."
+    }
   },
   "Operadores Booleanos": {
-    "video": {"label": "Indently — boolean logic", "url": "https://www.youtube.com/@Indently"},
+    "video": {
+      "label": "Indently — boolean logic",
+      "url": "https://www.youtube.com/@Indently"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — operacoes booleanas", "url": "https://docs.python.org/pt-br/3/library/stdtypes.html#boolean-operations"},
-      {"label": "GitHub — Python exercises", "url": "https://github.com/zhiwehu/Python-programming-exercises"}
+      {
+        "label": "docs.python.org (PT) — operacoes booleanas",
+        "url": "https://docs.python.org/pt-br/3/library/stdtypes.html#boolean-operations"
+      },
+      {
+        "label": "GitHub — Python exercises",
+        "url": "https://github.com/zhiwehu/Python-programming-exercises"
+      }
     ],
-    "mini_project": {"title": "Validador de formulario", "goal": "Aprovar so se (idade >= 18) AND (email tem '@') — montar a tabela-verdade mental."}
+    "mini_project": {
+      "title": "Validador de formulario",
+      "goal": "Aprovar so se (idade >= 18) AND (email tem '@') — montar a tabela-verdade mental."
+    }
   },
   "Dicionários": {
-    "video": {"label": "Indently — dictionaries", "url": "https://www.youtube.com/@Indently"},
+    "video": {
+      "label": "Indently — dictionaries",
+      "url": "https://www.youtube.com/@Indently"
+    },
     "sources": [
-      {"label": "docs.python.org (PT) — dicionarios", "url": "https://docs.python.org/pt-br/3/tutorial/datastructures.html#dictionaries"},
-      {"label": "GitHub — awesome python projects", "url": "https://github.com/garimasingh128/awesome-python-projects"}
+      {
+        "label": "docs.python.org (PT) — dicionarios",
+        "url": "https://docs.python.org/pt-br/3/tutorial/datastructures.html#dictionaries"
+      },
+      {
+        "label": "GitHub — awesome python projects",
+        "url": "https://github.com/garimasingh128/awesome-python-projects"
+      }
     ],
-    "mini_project": {"title": "Contador de palavras", "goal": "Dada uma frase, devolver {palavra: contagem} — base de fixtures de teste em QA."}
+    "mini_project": {
+      "title": "Contador de palavras",
+      "goal": "Dada uma frase, devolver {palavra: contagem} — base de fixtures de teste em QA."
+    }
   },
-  "Jogo da Velha": {
-    "video": {"label": "Tech With Tim — projetos/jogos", "url": "https://www.youtube.com/@TechWithTim"},
+  "Projeto de Jogo da Velha": {
+    "video": {
+      "label": "Tech With Tim — projetos/jogos",
+      "url": "https://www.youtube.com/@TechWithTim"
+    },
     "sources": [
-      {"label": "Pense em Python (livro PT-BR)", "url": "https://penseallen.github.io/PensePython2e/"},
-      {"label": "GitHub — project-based-learning", "url": "https://github.com/practical-tutorials/project-based-learning"}
+      {
+        "label": "Pense em Python (livro PT-BR)",
+        "url": "https://penseallen.github.io/PensePython2e/"
+      },
+      {
+        "label": "GitHub — project-based-learning",
+        "url": "https://github.com/practical-tutorials/project-based-learning"
+      }
     ],
-    "mini_project": {"title": "Detectar vencedor", "goal": "Dada a grade 3x3, dizer quem venceu (linhas/colunas/diagonais) — pensar em todos os casos."}
+    "mini_project": {
+      "title": "Detectar vencedor",
+      "goal": "Dada a grade 3x3, dizer quem venceu (linhas/colunas/diagonais) — pensar em todos os casos."
+    }
   }
 }
