@@ -120,3 +120,6 @@ agentdb.rvf
 agentdb.rvf.lock
 *.rvf
 *.rvf.lock
+
+# Config local do Claude Code (agents/skill do projeto + settings/lock locais)
+.claude/
