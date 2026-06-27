@@ -1,0 +1,12 @@
+Asset REAL incorporado (não inspirado): moldura 9-slice do AthenaPanel.
+
+- Pack:     Kenney Fantasy UI Borders (1.0)
+- Autor:    Kenney — www.kenney.nl
+- Arquivo:  panel-border-016.png  (PNG/Default/Border/panel-border-016.png do pack, 48x48)
+- Link:     https://kenney.nl/assets/fantasy-ui-borders
+- Download: https://kenney.nl/media/pages/assets/fantasy-ui-borders/ab29cd0165-1701602367/kenney_fantasy-ui-borders.zip
+- Licença:  Creative Commons Zero (CC0 1.0) — http://creativecommons.org/publicdomain/zero/1.0/
+            Uso pessoal/educacional/comercial liberado; crédito a 'Kenney' apreciado (não exigido).
+
+Uso: aplicado como border-image (9-slice) na moldura principal do AthenaPanel (.athena-float).
+License.txt original do pack preservado nesta pasta.

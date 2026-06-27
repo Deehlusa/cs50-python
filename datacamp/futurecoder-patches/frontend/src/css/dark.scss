@@ -240,6 +240,196 @@ html, body, #root, .book, .app, .page, #app, .container, .container-fluid {
 .tutor-float .tutor-head { cursor: move; user-select: none; }
 .tutor-drag-hint { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 6px; }
 
+/* Athena — painel de analytics/orquestração (módulos G/H/I) */
+/* ===== Athena — Guilda do Saber (RPG-lite / quest board) ===== */
+.athena-float {
+  width: 424px;
+  border: 1px solid rgba(230,193,90,.35);              /* moldura dourada gravada */
+  border-radius: 12px;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(124,92,255,.18), transparent 60%),
+    linear-gradient(180deg, #141826 0%, #0d0f14 100%);
+  box-shadow: 0 14px 40px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
+}
+/* Moldura REAL Kenney Fantasy UI Borders (CC0) — border-image 9-slice do tile 48x48 (corte 16).
+   border-image-source vem inline do PNG importado (App.js). Substitui a borda 1px pela moldura. */
+.athena-kenney-frame {
+  border-style: solid;
+  border-width: 15px;
+  border-image-slice: 16;
+  border-image-width: 15px;
+  border-image-outset: 0;
+  border-image-repeat: stretch;
+}
+.athena-kenney-frame .athena-guild-head { border-radius: 0; }   /* cabeçalho alinha dentro da moldura */
+.athena-guild-head {
+  background: linear-gradient(90deg, rgba(124,92,255,.30), rgba(45,212,191,.18));
+  border-bottom: 1px solid rgba(230,193,90,.35);
+  border-radius: 12px 12px 0 0;
+  padding: 9px 12px; font-weight: 700; letter-spacing: .2px;
+}
+.athena-guild-title { display: inline-flex; align-items: center; gap: 7px; }
+.athena-guild-owl {           /* coruja vetorial REAL (game-icons, CC BY 3.0) */
+  width: 18px; height: 18px; color: #e6c15a; flex: 0 0 auto;
+  filter: drop-shadow(0 0 4px rgba(230,193,90,.6));
+}
+/* hero / brasão de rank + barra de XP da guilda */
+.athena-hero {
+  display: flex; align-items: center; gap: 12px;
+  margin: 4px 0 12px; padding: 10px 12px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(230,193,90,.12), rgba(124,92,255,.10));
+  border: 1px solid rgba(230,193,90,.30);
+}
+.athena-hero-crest {          /* brasão de rank vetorial REAL (game-icons, CC BY 3.0) */
+  width: 34px; height: 34px; flex: 0 0 auto; color: #e6c15a;
+  filter: drop-shadow(0 0 6px rgba(230,193,90,.55));
+}
+.athena-hero-info { flex: 1; min-width: 0; }
+.athena-hero-rank { font-size: 13px; }
+.athena-hero-rank b {
+  color: #e6c15a;                          /* fallback sólido visível sempre */
+  font-weight: 800; letter-spacing: .3px;
+}
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .athena-hero-rank b {
+    background: linear-gradient(90deg, #e6c15a, #f0d98a);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+}
+.athena-hero-xpbar {
+  margin: 5px 0 3px; height: 9px; border-radius: 5px; overflow: hidden;
+  background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.08);
+}
+.athena-hero-xpfill {
+  display: block; height: 100%; border-radius: 5px; transition: width .4s ease;
+  background: linear-gradient(90deg, #e6c15a, #2dd4bf);
+  box-shadow: 0 0 8px rgba(45,212,191,.5);
+}
+.athena-hero-xptext { font-size: 11px; color: var(--muted); }
+.athena-hero-hint { font-size: 11px; color: #e6c15a; margin-top: 3px; opacity: .92; }
+/* microcopy / legenda (conteúdo) */
+.athena-section-head { display: flex; align-items: center; justify-content: space-between; }
+.athena-legend { font-size: 11px; color: var(--muted); line-height: 1.45; margin: 4px 0 8px; }
+.athena-qa-intro {
+  font-size: 11.5px; color: var(--muted); line-height: 1.45; margin-bottom: 8px;
+  padding-left: 8px; border-left: 2px solid #2dd4bf;
+}
+.athena-qa-intro code, .athena-legend code {
+  font-family: "SF Mono", Menlo, monospace; font-size: 11px;
+  background: rgba(255,255,255,.08); padding: 0 4px; border-radius: 3px;
+}
+/* eyebrow de quest no card de próximo passo */
+.athena-quest-eyebrow {
+  font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  color: #e6c15a; margin-bottom: 2px;
+}
+/* === Melhorias de produto (fora do Athena) === */
+.page-breadcrumb {
+  font-size: 12px; color: var(--muted); font-weight: 600;
+  letter-spacing: .3px; margin-bottom: 4px;
+}
+/* Botões prev/next com preview do destino (navegação deixa de ser cega). [Fluxo de estudo] */
+.page-nav-btn {
+  display: inline-flex; flex-direction: column; align-items: flex-start;
+  max-width: 48%; text-align: left; line-height: 1.2; gap: 2px;
+}
+.next-button.page-nav-btn { align-items: flex-end; text-align: right; }
+.page-nav-dest {
+  font-size: 11px; font-weight: 400; opacity: .85; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.practice-next-hint {
+  margin-top: 8px; padding: 8px 10px; border-radius: 6px; font-size: 12.5px; line-height: 1.5;
+  background: rgba(124,92,255,.10); border-left: 3px solid var(--accent, #7c5cff);
+}
+.practice-syncwarn {
+  margin: 6px 0 10px; padding: 8px 10px; border-radius: 6px; font-size: 12px; line-height: 1.45;
+  background: rgba(245,158,11,.12); border-left: 3px solid #f59e0b; color: #f0d98a;
+}
+.athena-body { margin-top: 8px; font-size: 13px; }
+.athena-next { margin-bottom: 12px; line-height: 1.5; }
+/* UI-2 Next Step card — ícone contextual + CTA "Ir praticar" */
+.athena-next-card {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px; border-radius: 8px;
+  background: rgba(124,92,255,.10); border-left: 3px solid var(--accent, #7c5cff);
+}
+.athena-next-card.is-review { background: rgba(245,158,11,.12); border-left-color: #f59e0b; }
+.athena-next-card.is-done   { background: rgba(63,185,80,.12);  border-left-color: #3fb950; }
+.athena-next-ico { font-size: 22px; line-height: 1; }
+.athena-next-info { flex: 1; min-width: 0; }
+.athena-next-title { font-weight: 600; font-size: 13px; }
+.athena-next-reason { font-size: 12px; color: var(--muted); margin: 3px 0 8px; line-height: 1.4; }
+.athena-next-cta {
+  font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--accent, #7c5cff); background: transparent; color: var(--accent, #7c5cff);
+}
+.athena-next-cta:hover { background: var(--accent, #7c5cff); color: #fff; }
+.athena-count { color: var(--muted); font-weight: 400; }
+/* UI-1 Skill Matrix — grid de cards por conceito (substitui as barras) */
+.athena-matrix { margin-top: 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.athena-card {
+  display: flex; flex-direction: column; gap: 4px; min-height: 64px;
+  padding: 8px; border-radius: 8px;
+  background: rgba(255,255,255,.04);
+  border-left: 3px solid var(--muted, #8b949e);
+}
+.athena-card-ico { font-size: 16px; line-height: 1; }
+.athena-card-label { font-size: 12px; line-height: 1.25; }
+.athena-card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.athena-card-state { font-size: 12px; }
+.athena-card-pct { font-size: 11px; color: var(--muted); }
+/* trilhas: cor da borda */
+.athena-card--core { border-left-color: #7c5cff; }   /* Python core (níveis 0–7) */
+.athena-card--qa   { border-left-color: #2dd4bf; }   /* QA Automation (8–11)    */
+.athena-card--cicd { border-left-color: #f59e0b; }   /* CI/CD (12)              */
+/* estados */
+.athena-card--done { background: rgba(63,185,80,.12); }
+.athena-card--wip  { background: rgba(124,92,255,.12); border-left-style: dashed; }
+.athena-card--todo { opacity: .55; }
+/* UI-3 QA Track — abas + lista da trilha de QA Automation (acento teal) */
+.athena-tabs {
+  display: flex; gap: 4px; margin-bottom: 10px; padding: 3px;
+  border-radius: 10px; background: rgba(0,0,0,.30);
+  border: 1px solid rgba(230,193,90,.20);   /* trilho do quest board */
+}
+.athena-tab {
+  flex: 1; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px;
+  cursor: pointer; border: 1px solid transparent; background: transparent; color: var(--muted);
+  transition: all .15s ease;
+}
+.athena-tab.active {
+  color: #0d0f14;
+  background: linear-gradient(90deg, #e6c15a, #f0d98a);
+  box-shadow: 0 1px 6px rgba(230,193,90,.45);
+}
+.athena-qa-list { display: flex; flex-direction: column; gap: 8px; }
+.athena-qa-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px;
+  border-radius: 8px; background: rgba(255,255,255,.04); border-left: 3px solid #2dd4bf;
+}
+.athena-qa-row--todo { opacity: .55; }
+.athena-qa-row--done { background: rgba(63,185,80,.12); }
+.athena-qa-ico { font-size: 18px; line-height: 1; }
+.athena-qa-main { flex: 1; min-width: 0; }
+.athena-qa-name { font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.athena-qa-badge {
+  font-size: 10px; padding: 1px 6px; border-radius: 999px;
+  background: rgba(45,212,191,.15); color: #2dd4bf; white-space: nowrap;
+}
+.athena-qa-track { margin-top: 5px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+.athena-qa-fill { display: block; height: 6px; background: #2dd4bf; border-radius: 3px; transition: width .3s; }
+.athena-qa-state { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.athena-qa-empty { text-align: center; padding: 18px 12px; }
+.athena-qa-empty-ico { font-size: 34px; }
+.athena-qa-empty-title { font-weight: 600; font-size: 13px; margin: 8px 0 4px; }
+.athena-qa-empty-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+.athena-runs-wrap { margin-top: 12px; }
+.athena-runs-wrap > summary { cursor: pointer; font-weight: 600; }
+.athena-runs { margin-top: 6px; font-family: "SF Mono", Menlo, monospace; font-size: 11px; color: var(--muted); max-height: 160px; overflow-y: auto; }
+.athena-trigger { background: transparent; }
+
 /* Sumario (#toc): barra de progresso + checkpoints por pagina */
 .toc-progress { display: flex; align-items: center; gap: 10px; margin: 4px 0 18px; }
 .toc-progress-bar {
@@ -546,6 +736,19 @@ header button.nav-link:not(.xp-pill) {
   border: 1px solid var(--border) !important;
 }
 .practice-hint-btn:hover, .practice-reset:hover { border-color: var(--accent) !important; }
+/* Botão checkpoint: recupera o código que o aluno fez passar (verde de "salvo/correto"). */
+.practice-checkpoint {
+  background: rgba(63,185,80,.12) !important; color: #3fb950 !important;
+  border: 1px solid rgba(63,185,80,.45) !important;
+}
+.practice-checkpoint:hover { background: rgba(63,185,80,.22) !important; }
+/* Primer de conceito: introduz um conceito antecipado ANTES do editor (anti "conceito jogado"). */
+.practice-concept-intro {
+  margin: 8px 0; padding: 9px 12px; border-radius: 8px; font-size: 12.5px; line-height: 1.55;
+  background: rgba(56,139,253,.10); border-left: 3px solid #58a6ff; color: var(--text);
+  white-space: pre-wrap;
+}
+.practice-concept-intro code { background: rgba(110,118,129,.25); padding: 0 4px; border-radius: 4px; }
 .practice-hints { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
 .practice-hint { font-size: 13px; color: var(--text); background: rgba(241,196,15,.07); border-left: 3px solid var(--gold, #f1c40f); padding: 6px 10px; border-radius: 4px; }
 .practice-hint-n { color: var(--gold, #f1c40f); font-weight: 700; margin-right: 4px; }
@@ -564,10 +767,12 @@ header button.nav-link:not(.xp-pill) {
 /* ===== Modo Foco (esconde distracoes, foca na aula) ===== */
 .focus-toggle { background: transparent !important; border: 0 !important; color: var(--text) !important; }
 .focus-toggle.active { color: var(--accent) !important; font-weight: 700; }
-body.focus-mode .ide,
-body.focus-mode .editor-buttons,
-body.focus-mode .full-ide-button,
-body.focus-mode .save-code-btn { display: none !important; }
+/* O Foco esconde a IDE só nas páginas de AULA. Na página #ide (body.route-ide) a IDE É o
+   conteúdo — manter editor/Executar/shell visíveis (senão "Executar" parece não fazer nada). */
+body.focus-mode:not(.route-ide) .ide,
+body.focus-mode:not(.route-ide) .editor-buttons,
+body.focus-mode:not(.route-ide) .full-ide-button,
+body.focus-mode:not(.route-ide) .save-code-btn { display: none !important; }
 body.focus-mode .book-text {
   max-width: 880px; margin: 0 auto; padding: 8px 24px 80px; font-size: 1.02em;
 }
@@ -615,3 +820,39 @@ body.focus-mode::after {
 }
 .badge-progress-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
 .badge-progress-text { font-size: 10px; color: var(--muted, #8b93a7); margin-top: 2px; }
+
+/* ===== GAP-1: Onboarding do modo de aprendizado (Foco) — no #toc ===== */
+.focus-onboarding {
+  background: var(--card, #161922); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent, #7c5cff);
+  border-radius: 10px; padding: 16px 18px; margin: 0 0 20px;
+}
+.focus-onboarding-title { font-size: 17px; font-weight: 700; color: var(--text); margin: 0 0 4px; }
+.focus-onboarding-sub { font-size: 13px; color: var(--muted, #8b93a7); margin: 0 0 14px; }
+.focus-options { display: flex; gap: 12px; flex-wrap: wrap; }
+.focus-option {
+  flex: 1 1 240px; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 9px;
+  padding: 13px 15px; color: var(--text); transition: border-color .15s ease, transform .12s ease;
+}
+.focus-option:hover:not(:disabled) { border-color: var(--accent, #7c5cff); transform: translateY(-1px); }
+.focus-option:disabled { opacity: .6; cursor: default; }
+.focus-option.selected { border-color: var(--accent, #7c5cff); box-shadow: 0 0 0 1px var(--accent, #7c5cff); }
+.focus-option-emoji { font-size: 22px; }
+.focus-option-title { font-size: 14.5px; font-weight: 700; }
+.focus-option-desc { font-size: 12px; color: var(--muted, #8b93a7); line-height: 1.4; }
+.focus-onboarding-cancel {
+  margin-top: 12px; background: transparent; border: none; color: var(--muted, #8b93a7);
+  font-size: 12px; cursor: pointer; text-decoration: underline;
+}
+.focus-chip-row { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; }
+.focus-chip {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--text);
+  background: rgba(124,92,255,.10); border: 1px solid rgba(124,92,255,.35);
+  border-radius: 20px; padding: 3px 12px;
+}
+.focus-chip-edit {
+  background: transparent; border: none; color: var(--accent, #7c5cff);
+  font-size: 12px; cursor: pointer; text-decoration: underline; padding: 0;
+}

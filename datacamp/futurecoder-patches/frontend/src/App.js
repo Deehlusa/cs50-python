@@ -29,6 +29,16 @@ import {
 import {courseCompletion, saveCodeToProject, askTutor} from "./book/serverSync";
 import {ClearProgressButton} from "./components/ClearProgressButton";
 import {PracticePanel, practiceStats, getStreak} from "./components/PracticePanel";
+// Ícones vetoriais REAIS — game-icons.net (autor: Lorc, CC BY 3.0). Ver assets/game-icons/CREDITS.txt.
+import {ReactComponent as GuildOwl} from "./assets/game-icons/guild-owl.svg";
+import {ReactComponent as CrestSprout} from "./assets/game-icons/rank-sprout.svg";
+import {ReactComponent as CrestSword} from "./assets/game-icons/rank-sword.svg";
+import {ReactComponent as CrestOrb} from "./assets/game-icons/rank-orb.svg";
+import {ReactComponent as CrestScroll} from "./assets/game-icons/rank-scroll.svg";
+import {ReactComponent as CrestCrown} from "./assets/game-icons/rank-crown.svg";
+// Moldura REAL — Kenney Fantasy UI Borders (CC0). Arquivo do pack incorporado como border-image
+// 9-slice no AthenaPanel. Ver assets/kenney-fantasy-ui-borders/CREDITS.txt + License.txt.
+import kenneyFrame from "./assets/kenney-fantasy-ui-borders/panel-border-016.png";
 import Popup from "reactjs-popup";
 import AceEditor from "react-ace";
 import Collapsible from 'react-collapsible';
@@ -633,8 +643,18 @@ const CourseText = (
     page,
     pages,
     assistant,
-  }) =>
+  }) => {
+    // Lista de páginas ordenada por índice para mostrar o DESTINO dos botões prev/next
+    // (navegação deixava de ser "cega": o aluno vê o tópico que vem). [Fluxo de estudo]
+    const pageList = Object.values(pages).sort((a, b) => a.index - b.index);
+    const stripHtml = (h) => (h || "").replace(/<[^>]+>/g, "");
+    const prevPage = pageList[page.index - 1];
+    const nextPage = pageList[page.index + 1];
+    return (
     <>
+    <div className="page-breadcrumb">
+      {slugToChapter[page.slug] || "Curso"} · {page.index + 1}/{Object.keys(pages).length} do curso
+    </div>
     <h1 dangerouslySetInnerHTML={{__html: page.title}}/>
     {page.steps.map((part, index) =>
       <div
@@ -651,15 +671,17 @@ const CourseText = (
     {/* pt-3 is Bootstrap's helper class. Shorthand for padding-top: 1rem. Available classes are pt-{1-5} */}
     <div className='pt-3'>
       {page.index > 0 &&
-      <button className="btn btn-primary previous-button"
-              onClick={() => movePage(-1)}>
+      <button className="btn btn-primary previous-button page-nav-btn"
+              onClick={() => movePage(-1)} title={prevPage ? stripHtml(prevPage.title) : ""}>
         ← {terms.previous}
+        {prevPage && <span className="page-nav-dest">{stripHtml(prevPage.title)}</span>}
       </button>}
       {" "}
       {page.index < Object.keys(pages).length - 1 &&
-      <button className="btn btn-success next-button"
-              onClick={() => movePage(+1)}>
+      <button className="btn btn-success next-button page-nav-btn"
+              onClick={() => movePage(+1)} title={nextPage ? stripHtml(nextPage.title) : ""}>
         {terms.next} →
+        {nextPage && <span className="page-nav-dest">{stripHtml(nextPage.title)}</span>}
       </button>}
     </div>
     <LearnMorePanel pageSlug={page.slug}/>
@@ -669,6 +691,8 @@ const CourseText = (
       user.developerMode && <StepButtons/>
     }
   </>
+    );
+  }
 
 class AppComponent extends React.Component {
   render() {
@@ -758,6 +782,233 @@ const TutorPanel = () => {
   </>;
 };
 
+// Athena — painel de analytics/orquestração DENTRO do futurecoder (módulos G/H/I da
+// SDD-ai-learning-os): próximo passo (Progress Analyst), domínio por conceito (Mastery
+// Tracker) e log da sessão autônoma (/loop). Mesmo padrão do TutorPanel: botão na navbar
+// → painel flutuante arrastável. Lê /api/{next,mastery,agent-run} no server.py.
+// Emoji por conceito (UI-1 Skill Matrix) — inline, sem dependência nova (COEP-safe).
+const CONCEPT_ICON = {
+  shell_print_vars: "🐍", types_cast_conditionals: "🔀", loops: "🔁", strings: "🔤",
+  collections: "🗂️", pure_functions: "🧩", exceptions: "⚠️", files_json_oop: "📦",
+  pytest_aaa: "🧪", pytest_raises_param: "🎯", api_requests: "🌐", playwright_pom: "🎭",
+  ci_cd: "⚙️",
+};
+
+// Badge curto por conceito QA (UI-3 QA Track).
+const QA_BADGE = {
+  pytest_aaa: "AAA", pytest_raises_param: "raises", api_requests: "requests",
+  playwright_pom: "POM", ci_cd: "Actions",
+};
+
+// Ranks da Guilda por nº de conceitos dominados (0–13). Crest = ícone vetorial REAL (game-icons).
+const RANKS = [
+  {min: 0,  title: "Aprendiz",  Crest: CrestSprout},
+  {min: 1,  title: "Escudeiro", Crest: CrestSword},
+  {min: 4,  title: "Adepto",    Crest: CrestOrb},
+  {min: 8,  title: "Arcanista", Crest: CrestScroll},
+  {min: 12, title: "Mestre",    Crest: CrestCrown},
+];
+const rankFor = (mastered) => RANKS.reduce((acc, r) => mastered >= r.min ? r : acc, RANKS[0]);
+
+const AthenaPanel = () => {
+  const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState({x: Math.max(12, window.innerWidth - 432), y: 64});
+  const [data, setData] = React.useState({next: null, mastery: null, runs: []});
+  const [loading, setLoading] = React.useState(false);
+  const [tab, setTab] = React.useState("matrix");   // UI-3: "matrix" (todos) | "qa" (QA Track)
+  const off = React.useRef({dx: 0, dy: 0});
+
+  const startDrag = (e) => {
+    off.current = {dx: e.clientX - pos.x, dy: e.clientY - pos.y};
+    const move = (ev) => setPos({
+      x: Math.min(Math.max(0, ev.clientX - off.current.dx), window.innerWidth - 80),
+      y: Math.min(Math.max(0, ev.clientY - off.current.dy), window.innerHeight - 60),
+    });
+    const up = () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [next, mastery, runs] = await Promise.all([
+        fetch("/api/next").then(r => r.json()).catch(() => null),
+        fetch("/api/mastery").then(r => r.json()).catch(() => null),
+        fetch("/api/agent-run").then(r => r.json()).catch(() => ({items: []})),
+      ]);
+      setData({next, mastery, runs: (runs && runs.items) || []});
+    } catch { /* server.py off — painel degrada sem quebrar */ }
+    setLoading(false);
+  };
+
+  React.useEffect(() => { if (open) load(); }, [open]);
+
+  // CTA "Ir praticar": rola até o PracticePanel da PÁGINA ATUAL (scroll seguro, sem rota nova).
+  // Limite: não navega cross-capítulo (páginas à frente do progresso são travadas pela SPA).
+  const goPractice = () => {
+    const el = document.querySelector(".practice-panel");
+    if (el) {
+      el.scrollIntoView({behavior: "smooth", block: "start"});
+      setOpen(false);
+    }
+  };
+
+  const bars = (data.mastery && data.mastery.items) || [];
+  const qa = bars.filter(it => it.level >= 8);          // trilha QA: pytest → CI/CD (níveis 8–12)
+  const qaStarted = qa.some(it => it.strength > 0);
+  // Guilda do Saber: rank + barra de XP a partir do domínio total.
+  const mastered = (data.mastery && data.mastery.mastered) || 0;
+  const totalC = (data.mastery && data.mastery.total) || 0;
+  const overall = totalC ? Math.round((mastered / totalC) * 100) : 0;
+  const rank = rankFor(mastered);
+  const rankIdx = RANKS.indexOf(rank);
+  const nextRank = RANKS[rankIdx + 1];
+  const toNext = nextRank ? nextRank.min - mastered : 0;
+  return <>
+    <button className="nav-item nav-link athena-trigger"
+            title="Athena — seu painel de aprendizado (próximo passo, domínio, sessão autônoma)"
+            onClick={() => setOpen(o => !o)}>
+      🦉 Athena
+    </button>
+    {open &&
+      <div className="tutor-float athena-float athena-kenney-frame"
+           style={{left: pos.x, top: pos.y, borderImageSource: `url(${kenneyFrame})`}}>
+        <div className="tutor-head athena-guild-head" onMouseDown={startDrag}>
+          <span className="athena-guild-title">
+            <GuildOwl className="athena-guild-owl" aria-hidden="true"/>
+            Athena · Salão da Guilda <span className="tutor-drag-hint">⠿ arraste</span>
+          </span>
+          <button className="tutor-close" onClick={() => setOpen(false)}>×</button>
+        </div>
+        {loading
+          ? <div className="athena-body">Carregando…</div>
+          : <div className="athena-body">
+              <div className="athena-hero">
+                <rank.Crest className="athena-hero-crest" aria-hidden="true"/>
+                <div className="athena-hero-info">
+                  <div className="athena-hero-rank">Rank: <b>{rank.title}</b></div>
+                  <div className="athena-hero-xpbar">
+                    <span className="athena-hero-xpfill" style={{width: overall + "%"}}/>
+                  </div>
+                  <div className="athena-hero-xptext">{mastered}/{totalC} habilidades · {overall}%</div>
+                  <div className="athena-hero-hint">
+                    {nextRank
+                      ? `Domine +${toNext} conceito${toNext > 1 ? "s" : ""} (≥80%) para alcançar ${nextRank.title}.`
+                      : "Rank máximo da guilda. Mantenha as revisões em dia."}
+                  </div>
+                </div>
+              </div>
+              <div className="athena-next">
+                {data.next && data.next.label
+                  ? <div className={"athena-next-card" + (data.next.review ? " is-review" : "")}>
+                      <span className="athena-next-ico">{data.next.review ? "⏰" : "⚔️"}</span>
+                      <div className="athena-next-info">
+                        <div className="athena-quest-eyebrow">
+                          {data.next.review ? "↻ Revisão da guilda" : "⚔️ Missão atual"}
+                        </div>
+                        <div className="athena-next-title">{data.next.label}</div>
+                        <div className="athena-next-reason">{data.next.reason}</div>
+                        <button className="athena-next-cta" onClick={goPractice}>🏋️ Ir praticar</button>
+                      </div>
+                    </div>
+                  : <div className="athena-next-card is-done">
+                      <span className="athena-next-ico">🎉</span>
+                      <div className="athena-next-info">
+                        <div className="athena-next-title">Currículo concluído</div>
+                        <div className="athena-next-reason">Todos os conceitos dominados.</div>
+                      </div>
+                    </div>}
+              </div>
+              <div className="athena-mastery">
+                <div className="athena-tabs">
+                  <button className={"athena-tab" + (tab === "matrix" ? " active" : "")}
+                          onClick={() => setTab("matrix")}>🗺️ Jornada</button>
+                  <button className={"athena-tab" + (tab === "qa" ? " active" : "")}
+                          onClick={() => setTab("qa")}>🛡️ QA Guild</button>
+                </div>
+
+                {tab === "matrix" &&
+                  <>
+                    <div className="athena-section-head">
+                      <span className="athena-count">
+                        {data.mastery ? `${data.mastery.mastered}/${data.mastery.total} conceitos dominados` : "Comece sua jornada"}
+                      </span>
+                    </div>
+                    <div className="athena-legend">
+                      ✅ dominado (≥80%) · 🔄 em progresso · 🔒 não iniciado — domínio cresce
+                      ao acertar exercícios e cai se você erra. Revisões espaçadas mantêm a memória.
+                    </div>
+                    <div className="athena-matrix">
+                      {bars.map(it => {
+                        const pct = Math.round((it.strength || 0) * 100);
+                        const track = it.level >= 12 ? "cicd" : it.level >= 8 ? "qa" : "core";
+                        const state = it.mastered ? "done" : (it.strength > 0 ? "wip" : "todo");
+                        const mark = it.mastered ? "✅" : (it.strength > 0 ? "🔄" : "🔒");
+                        return <div className={`athena-card athena-card--${track} athena-card--${state}`}
+                                    key={it.concept} title={`${it.label} — ${pct}%`}>
+                          <span className="athena-card-ico">{CONCEPT_ICON[it.concept] || "•"}</span>
+                          <span className="athena-card-label">{it.label}</span>
+                          <span className="athena-card-foot">
+                            <span className="athena-card-state">{mark}</span>
+                            <span className="athena-card-pct">{pct}%</span>
+                          </span>
+                        </div>;
+                      })}
+                    </div>
+                  </>}
+
+                {tab === "qa" && (qaStarted
+                  ? <div className="athena-qa-list">
+                      <div className="athena-qa-intro">
+                        Trilha QA → CI/CD: do primeiro <code>assert</code> ao pipeline verde a cada commit.
+                      </div>
+                      {qa.map(it => {
+                        const pct = Math.round((it.strength || 0) * 100);
+                        const state = it.mastered ? "done" : (it.strength > 0 ? "wip" : "todo");
+                        const mark = it.mastered ? "✅" : (it.strength > 0 ? "🔄" : "🔒");
+                        return <div className={"athena-qa-row athena-qa-row--" + state} key={it.concept}>
+                          <span className="athena-qa-ico">{CONCEPT_ICON[it.concept] || "•"}</span>
+                          <div className="athena-qa-main">
+                            <div className="athena-qa-name">
+                              {it.label} <span className="athena-qa-badge">{QA_BADGE[it.concept] || ""}</span>
+                            </div>
+                            <div className="athena-qa-track">
+                              <span className="athena-qa-fill" style={{width: pct + "%"}}/>
+                            </div>
+                          </div>
+                          <span className="athena-qa-state">{mark} {pct}%</span>
+                        </div>;
+                      })}
+                    </div>
+                  : <div className="athena-qa-empty">
+                      <div className="athena-qa-empty-ico">🧪</div>
+                      <div className="athena-qa-empty-title">A Guilda de QA está recrutando</div>
+                      <div className="athena-qa-empty-text">
+                        Testar é o que separa "funciona na minha máquina" de "pronto pra produção".
+                        Domine a base de Python na aba <b>Jornada</b> e estes marcos abrem aqui:
+                        <b> pytest</b> (testes que falham cedo), <b>requests</b> (API testing),
+                        <b> Playwright</b> (E2E) e <b>CI/CD</b> (tudo verde a cada commit).
+                      </div>
+                    </div>)}
+              </div>
+              <details className="athena-runs-wrap">
+                <summary>🤖 Sessão autônoma (log do /loop)</summary>
+                <div className="athena-runs">
+                  {data.runs.length
+                    ? data.runs.slice(0, 12).map(r =>
+                        <div key={r.id}>{r.ts} · <b>{r.agent}</b> [{r.provider}] {r.status}</div>)
+                    : <div>(sem execuções ainda)</div>}
+                </div>
+              </details>
+            </div>}
+      </div>}
+  </>;
+};
+
 function FocusButton() {
   const [on, setOn] = React.useState(false);
 
@@ -820,6 +1071,7 @@ function NavBar({user}) {
       <FontAwesomeIcon icon={faListOl}/> {terms.table_of_contents}
     </a>
     <TutorPanel/>
+    <AthenaPanel/>
     <FocusButton/>
     {(() => {
       const s = getStreak();
@@ -874,6 +1126,14 @@ function AppMain(
   }) {
   const isQuestionWizard = route === "question";
   const fullIde = route === "ide";
+
+  // Marca a rota #ide no body. O modo Foco esconde a IDE nas páginas de AULA (pra ler o texto),
+  // mas na página #ide a IDE É o conteúdo — sem isso, o Foco escondia editor/Executar/shell e
+  // "Executar" parecia não fazer nada. [fix: Foco no #ide]
+  React.useEffect(() => {
+    document.body.classList.toggle("route-ide", fullIde);
+    return () => document.body.classList.remove("route-ide");
+  }, [fullIde]);
 
   const page = currentPage();
   const step = currentStep();

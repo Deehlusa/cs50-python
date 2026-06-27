@@ -1,0 +1,5 @@
+Ícones vetoriais: game-icons.net — autor: Lorc (https://lorcblog.blogspot.com/)
+Licença: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/)
+Arquivos: guild-owl, rank-sprout, rank-sword, rank-orb, rank-scroll, rank-crown.
+Processamento: removido o retângulo de fundo; fill trocado para currentColor
+(recoloração via CSS). Sem alteração do desenho do ícone.
