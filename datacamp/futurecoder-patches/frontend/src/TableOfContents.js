@@ -4,6 +4,7 @@ import chapters from "./chapters.json"
 import {bookState} from "./book/store";
 import terms from "./terms.json"
 import {ClearProgressButton} from "./components/ClearProgressButton";
+import {FocusOnboarding} from "./components/FocusOnboarding";
 
 export const TableOfContents = () => {
   const current = bookState.user.pageSlug;
@@ -40,6 +41,7 @@ export const TableOfContents = () => {
       <div className="container toc-container">
         <div className="row">
           <div className="col-md-9" role="main">
+            <FocusOnboarding/>
             <div className="toc-section">
               <h1 id="toc-toc">
                 {terms.table_of_contents}
